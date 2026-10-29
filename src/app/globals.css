@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-verde: #335443;
+  --color-verde-dark: #263f33;
+  --color-sky: #aeded0;
+  --color-sage: #828677;
+  --color-blush: #f8edf1;
+  --color-leaf: #a9be7c;
+  --font-sans: "Jost", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Cairo", ui-sans-serif, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: #1f2d26;
+  font-family: var(--font-sans);
+}
+
+[dir="rtl"] body {
+  font-family: "Cairo", "Jost", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-verde text-white hover:bg-verde-dark;
+  }
+  .btn-sky {
+    @apply bg-sky text-verde hover:brightness-95;
+  }
+  .btn-outline {
+    @apply border border-verde/40 text-verde hover:bg-verde hover:text-white;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 outline-none transition focus:border-verde focus:ring-2 focus:ring-sky;
+  }
+  .label {
+    @apply mb-1 block text-sm font-semibold text-verde;
+  }
+  .card {
+    @apply rounded-3xl border border-verde/10 bg-white p-5 shadow-sm;
+  }
+  .font-display {
+    letter-spacing: 0.02em;
+  }
+}
+
+@keyframes pulse-alert {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
+.ringing {
+  animation: pulse-alert 1.2s infinite;
+  border-color: #dc2626 !important;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
