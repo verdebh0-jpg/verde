@@ -178,7 +178,6 @@ export default function RegisterForm({
                       </button>
                     ))}
                   </div>
-                  <p className="mt-2 text-xs text-sage">{t("per5days")}</p>
                 </div>
               );
             })}
