@@ -108,7 +108,6 @@ export default async function Home() {
                   </div>
                   <div className="flex-1 space-y-3 p-5">
                     {(pk.descAr || pk.descEn) && <p className="text-sm text-sage">{p(pk.descAr, pk.descEn)}</p>}
-                    <p className="text-xs font-semibold uppercase text-sage">{t("per5days")}</p>
                     <ul className="space-y-2">
                       {pk.options.map((o) => (
                         <li key={o.id} className="flex items-center justify-between rounded-xl bg-blush px-4 py-2">
