@@ -419,7 +419,6 @@ export default function RegisterForm({
           <button className="btn btn-primary w-full !py-3 text-lg" disabled={busy || !catalog.methods.length}>
             {busy ? t("processing") : method === "cash" ? t("confirmSubscription") : t("payAndSubscribe")}
           </button>
-          <p className="text-center text-xs text-sage">{t("secureNote")}</p>
         </div>
       </aside>
     </form>
