@@ -147,9 +147,9 @@ export default function RegisterForm({
     <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-6">
         <div className="rounded-3xl bg-blush p-5 text-center text-verde">
-          <p className="font-semibold">{t("formIntroAr")}</p>
+          <p className="font-semibold">{catalog.settings?.form_intro_ar || t("formIntroAr")}</p>
           <p className="text-sm text-sage" dir="ltr">
-            {t("formIntroEn")}
+            {catalog.settings?.form_intro_en || t("formIntroEn")}
           </p>
         </div>
 
