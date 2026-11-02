@@ -88,6 +88,11 @@ export const addons = pgTable("addons", {
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
 });
+export const foodOptions = pgTable("food_options", {
+  id: serial("id").primaryKey(),
+  nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en").notNull(),
+});
 
 export const deliverySlots = pgTable("delivery_slots", {
   id: serial("id").primaryKey(),

@@ -66,6 +66,18 @@ export default function RegisterForm({
 
   const setField = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
 
+  // دالة مساعدة للتحكم في اختيار وإلغاء اختيار الأطعمة والحساسية بشكل مستقل لكل خانة
+  const toggleFoodSelection = (field: "unwanted" | "allergy", itemName: string) => {
+    const currentList = f[field] ? f[field].split(", ").filter(Boolean) : [];
+    let updatedList: string[];
+    if (currentList.includes(itemName)) {
+      updatedList = currentList.filter((item) => item !== itemName);
+    } else {
+      updatedList = [...currentList, itemName];
+    }
+    setField(field, updatedList.join(", "));
+  };
+
   const allOptions = useMemo(
     () => catalog.packages.flatMap((pk) => pk.options.map((o) => ({ ...o, pkg: pk }))),
     [catalog],
@@ -250,23 +262,76 @@ export default function RegisterForm({
               {t("name")}: <b className="text-verde">{customer.name}</b>
             </p>
           )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label>
-              <span className="label">{t("unwanted")}</span>
-              <textarea className="input" rows={2} value={f.unwanted} onChange={(e) => setField("unwanted", e.target.value)} />
-            </label>
-            <label>
-              <span className="label">{t("allergy")}</span>
-              <textarea className="input" rows={2} value={f.allergy} onChange={(e) => setField("allergy", e.target.value)} />
-            </label>
-            <label>
-              <span className="label">{t("weight")} (kg)</span>
-              <input className="input" dir="ltr" inputMode="decimal" value={f.weight} onChange={(e) => setField("weight", e.target.value)} />
-            </label>
-            <label>
-              <span className="label">{t("height")} (cm)</span>
-              <input className="input" dir="ltr" inputMode="decimal" value={f.height} onChange={(e) => setField("height", e.target.value)} />
-            </label>
+
+          {/* الخانات التفاعلية لاختيار الأطعمة غير المرغوبة وحساسية الأطعمة مستقلاً */}
+          <div className="space-y-6 pt-2">
+            {/* 1. خانة الأكلات غير المرغوبة */}
+            <div className="space-y-2">
+              <span className="label font-bold text-verde">{t("unwanted")}</span>
+              <div className="flex flex-wrap gap-2">
+                {(catalog.foodOptions ?? []).map((item) => {
+                  const itemName = p(item.nameAr, item.nameEn);
+                  const selected = f.unwanted.split(", ").filter(Boolean).includes(itemName);
+                  return (
+                    <button
+                      type="button"
+                      key={`unwanted-${item.id}`}
+                      onClick={() => toggleFoodSelection("unwanted", itemName)}
+                      className={`rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${
+                        selected
+                          ? "border-verde bg-verde text-white shadow-sm"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-verde/50"
+                      }`}
+                    >
+                      {selected ? "✓ " : "+ "} {itemName}
+                    </button>
+                  );
+                })}
+                {(!catalog.foodOptions || catalog.foodOptions.length === 0) && (
+                  <p className="text-xs text-slate-400">{t("noData")}</p>
+                )}
+              </div>
+            </div>
+
+            {/* 2. خانة حساسية الأطعمة (مستقلة تماماً) */}
+            <div className="space-y-2">
+              <span className="label font-bold text-red-700">{t("allergy")}</span>
+              <div className="flex flex-wrap gap-2">
+                {(catalog.foodOptions ?? []).map((item) => {
+                  const itemName = p(item.nameAr, item.nameEn);
+                  const selected = f.allergy.split(", ").filter(Boolean).includes(itemName);
+                  return (
+                    <button
+                      type="button"
+                      key={`allergy-${item.id}`}
+                      onClick={() => toggleFoodSelection("allergy", itemName)}
+                      className={`rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${
+                        selected
+                          ? "border-red-600 bg-red-600 text-white shadow-sm"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-red-400"
+                      }`}
+                    >
+                      {selected ? "✓ " : "+ "} {itemName}
+                    </button>
+                  );
+                })}
+                {(!catalog.foodOptions || catalog.foodOptions.length === 0) && (
+                  <p className="text-xs text-slate-400">{t("noData")}</p>
+                )}
+              </div>
+            </div>
+
+            {/* الوزن والارتفاع */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label>
+                <span className="label">{t("weight")} (kg)</span>
+                <input className="input" dir="ltr" inputMode="decimal" value={f.weight} onChange={(e) => setField("weight", e.target.value)} />
+              </label>
+              <label>
+                <span className="label">{t("height")} (cm)</span>
+                <input className="input" dir="ltr" inputMode="decimal" value={f.height} onChange={(e) => setField("height", e.target.value)} />
+              </label>
+            </div>
           </div>
         </Section>
 
