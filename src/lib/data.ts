@@ -4,7 +4,6 @@ import {
   addons,
   carouselImages,
   deliverySlots,
-  foodOptions, // ⬅️ 1. استيراد جدول خيارات الأطعمة
   packageOptions,
   packages,
   paymentMethods,
@@ -23,15 +22,14 @@ export async function getSettings(): Promise<Record<string, string>> {
 }
 
 export async function getCatalog() {
-  const [pk, opts, ad, sl, rg, pm, st, fo] = await Promise.all([
+  const [pk, opts, ad, sl, rg, pm, st] = await Promise.all([
     db.select().from(packages).where(eq(packages.active, true)).orderBy(asc(packages.sortOrder), asc(packages.id)),
     db.select().from(packageOptions).where(eq(packageOptions.active, true)).orderBy(asc(packageOptions.sortOrder), asc(packageOptions.id)),
     db.select().from(addons).where(eq(addons.active, true)).orderBy(asc(addons.sortOrder), asc(addons.id)),
     db.select().from(deliverySlots).where(eq(deliverySlots.active, true)).orderBy(asc(deliverySlots.startTime), asc(deliverySlots.id)),
     db.select().from(regions).where(eq(regions.active, true)).orderBy(asc(regions.sortOrder), asc(regions.id)),
     db.select().from(paymentMethods).where(eq(paymentMethods.active, true)).orderBy(asc(paymentMethods.sortOrder), asc(paymentMethods.id)),
-    getSettings(),
-    db.select().from(foodOptions), // ⬅️ 2. جلب جدول خيارات الأطعمة والحساسية من قاعدة البيانات
+    getSettings(), // جلب جدول الإعدادات كاملاً
   ]);
 
   return {
@@ -40,8 +38,7 @@ export async function getCatalog() {
     slots: sl,
     regions: rg,
     methods: pm,
-    settings: st,
-    foodOptions: fo, // ⬅️ 3. إرجاع الخيارات ضمن الكتالوج لتكون جاهزة للاستخدام
+    settings: st, // تم إضافة الإعدادات هنا لربطها بصفحة التسجيل
   };
 }
 

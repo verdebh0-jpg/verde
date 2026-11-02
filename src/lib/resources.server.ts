@@ -4,7 +4,6 @@ import {
   carouselImages,
   deliverySlots,
   discountCodes,
-  foodOptions, // 👈 1. تم إضافة الجدول هنا
   packageOptions,
   packages,
   paymentMethods,
@@ -22,7 +21,6 @@ export const RESOURCES: Record<string, { table: any; perm: string; order: any[] 
   popups: { table: popups, perm: "popups", order: [popups.id] },
   carousel: { table: carouselImages, perm: "settings", order: [carouselImages.sortOrder, carouselImages.id] },
   "payment-methods": { table: paymentMethods, perm: "settings", order: [paymentMethods.sortOrder, paymentMethods.id] },
-  "food-options": { table: foodOptions, perm: "settings", order: [foodOptions.id] }, // 👈 2. تم إضافته إلى القائمة هنا
 };
 
 export const NO_CREATE = new Set(["payment-methods"]);
