@@ -247,7 +247,7 @@ export const proteinPrices = pgTable("protein_prices", {
   weightKey: text("weight_key").notNull().unique(),
   labelAr: text("label_ar").notNull(),
   labelEn: text("label_en").notNull(),
-  price: decimal("price", { precision: 10, scale: 3 }).notNull(),
+  price: money("price").notNull().default(0),
   sortOrder: integer("sort_order").default(0).notNull(),
   active: boolean("active").default(true).notNull(),
 });
