@@ -53,6 +53,11 @@ export default function RegisterForm({
   const { t, l, p, locale } = useLocale();
   const router = useRouter();
    const [selectedUnwanted, setSelectedUnwanted] = useState<string[]>([]);
+  const toggleUnwanted = (label: string) => {
+    setSelectedUnwanted((prev) =>
+      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
+    );
+  };
   // نوع الاشتراك: باقات جاهزة أو طلبات من اختيارك
   const [subscriptionType, setSubscriptionType] = useState<"packages" | "custom">("packages");
 
