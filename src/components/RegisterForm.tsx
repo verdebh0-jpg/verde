@@ -6,7 +6,26 @@ import { useLocale } from "./LocaleProvider";
 import type { Catalog } from "@/lib/data";
 import { computePricing } from "@/lib/pricing";
 import { fmtMoney, fmtTime } from "@/lib/dates";
+const FOOD_ITEMS_OPTIONS = [
+  // البروتينات (Proteins)
+  { id: "chicken", nameAr: "دجاج", nameEn: "Chicken", category: "protein" },
+  { id: "beef", nameAr: "لحم بقري", nameEn: "Beef", category: "protein" },
+  { id: "salmon", nameAr: "سالمون", nameEn: "Salmon", category: "protein" },
+  { id: "shrimp", nameAr: "روبيان", nameEn: "Shrimp", category: "protein" },
+  { id: "tuna", nameAr: "تونا", nameEn: "Tuna", category: "protein" },
+  { id: "white_fish", nameAr: "سمك أبيض", nameEn: "White Fish", category: "protein" },
+  { id: "turkey", nameAr: "ديك رومي", nameEn: "Turkey", category: "protein" },
+  { id: "egg", nameAr: "بيض", nameEn: "Egg", category: "protein" },
+  { id: "halloumi", nameAr: "حلومي", nameEn: "Halloumi", category: "protein" },
 
+  // الكاربوهيدرات (Carbs)
+  { id: "rice", nameAr: "أرز", nameEn: "Rice", category: "carb" },
+  { id: "potatoes", nameAr: "بطاطس", nameEn: "Potatoes", category: "carb" },
+  { id: "sweet_potatoes", nameAr: "بطاطس حلوة", nameEn: "Sweet Potatoes", category: "carb" },
+  { id: "pasta", nameAr: "باستا", nameEn: "Pasta", category: "carb" },
+  { id: "bread", nameAr: "خبز", nameEn: "Bread", category: "carb" },
+  { id: "tortilla_bread", nameAr: "خبز تورتيلا", nameEn: "Tortilla Bread", category: "carb" },
+];
 type Profile = {
   name: string;
   weight: string;
@@ -210,6 +229,7 @@ export default function RegisterForm({
     setBusy(true);
     const payload = {
       ...f,
+       unwanted: selectedUnwanted.join(", "),
       subscriptionType,
       optionId: subscriptionType === "packages" ? optionId : null,
       days: subscriptionType === "packages" ? days : customDays,
@@ -566,10 +586,36 @@ export default function RegisterForm({
             </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <label>
-              <span className="label">{t("unwanted")}</span>
-              <textarea className="input" rows={2} value={f.unwanted} onChange={(e) => setField("unwanted", e.target.value)} />
-            </label>
+            <div className="sm:col-span-2 space-y-2">
+  <span className="label font-semibold text-verde">
+    {t("unwanted")} (اختياري - يمكنك التحديد أو تركه فارغاً):
+  </span>
+  <div className="flex flex-wrap gap-2.5 pt-1">
+    {FOOD_ITEMS_OPTIONS.map((item) => {
+      const labelText = p(item.nameAr, item.nameEn);
+      const isSelected = selectedUnwanted.includes(labelText);
+      return (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => toggleUnwanted(labelText)}
+          className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition-all ${
+            isSelected
+              ? "border-verde bg-verde text-white shadow-sm"
+              : "border-slate-200 bg-white text-slate-700 hover:border-verde/50"
+          }`}
+        >
+          <span className={`h-4 w-4 rounded-md border flex items-center justify-center text-xs transition ${
+            isSelected ? "bg-white text-verde border-white font-bold" : "border-slate-300"
+          }`}>
+            {isSelected ? "✓" : ""}
+          </span>
+          {labelText}
+        </button>
+      );
+    })}
+  </div>
+</div>
             <label>
               <span className="label">{t("allergy")}</span>
               <textarea className="input" rows={2} value={f.allergy} onChange={(e) => setField("allergy", e.target.value)} />
