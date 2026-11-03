@@ -2,6 +2,7 @@
 import {
   addons,
   carouselImages,
+  customMealOptions, // 👈 تم إضافة هذا الاستيراد
   deliverySlots,
   discountCodes,
   packageOptions,
@@ -21,6 +22,7 @@ export const RESOURCES: Record<string, { table: any; perm: string; order: any[] 
   popups: { table: popups, perm: "popups", order: [popups.id] },
   carousel: { table: carouselImages, perm: "settings", order: [carouselImages.sortOrder, carouselImages.id] },
   "payment-methods": { table: paymentMethods, perm: "settings", order: [paymentMethods.sortOrder, paymentMethods.id] },
+  "custom-meals": { table: customMealOptions, perm: "settings", order: [customMealOptions.sortOrder, customMealOptions.id] }, // 👈 تم إضافة هذا السطر
 };
 
 export const NO_CREATE = new Set(["payment-methods"]);

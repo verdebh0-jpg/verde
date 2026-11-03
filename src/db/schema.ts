@@ -232,3 +232,13 @@ export const orders = pgTable(
   },
   (t) => [index("orders_date_idx").on(t.deliveryDate)],
 );
+// ---------- Custom Meal Options ----------
+export const customMealOptions = pgTable("custom_meal_options", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // protein | carb | grams | days | packaging
+  nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en").notNull(),
+  price: money("price").notNull().default(0), // السعر أو التكلفة الإضافية إن وجدت
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
