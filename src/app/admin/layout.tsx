@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/orders", key: "orders", icon: "📦", perm: "orders" },
   { href: "/admin/reports", key: "reports", icon: "📊", perm: "reports" },
   { href: "/admin/packages", key: "packages", icon: "🥗", perm: "packages" },
+  { href: "/admin/custom-meals", key: "custom_meals", icon: "🍽️", perm: "settings" }, // 👈 تمت إضافة قسم طلبات من اختيارك هنا
   { href: "/admin/addons", key: "addons", icon: "➕", perm: "addons" },
   { href: "/admin/delivery-times", key: "delivery_times", icon: "🕒", perm: "delivery_times" },
   { href: "/admin/regions", key: "regions", icon: "📍", perm: "regions" },
@@ -29,7 +30,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (s.role === "kitchen") redirect("/kitchen");
   const [{ t }, settings] = await Promise.all([getI18n(), getSettings()]);
   const items = NAV.filter((n) => (n.perm === null ? true : n.perm === "owner" ? s.role === "owner" : hasPerm(s, n.perm))).map(
-    (n) => ({ href: n.href, icon: n.icon, label: t("nav_" + n.key) }),
+    (n) => ({ 
+      href: n.href, 
+      icon: n.icon, 
+      label: n.key === "custom_meals" ? "طلبات من اختيارك" : t("nav_" + n.key) // 👈 وضعنا الاسم مباشرة لضمان ظهوره الفوري بالعربي
+    }),
   );
   return (
     <div className="min-h-screen bg-blush/40 lg:flex">

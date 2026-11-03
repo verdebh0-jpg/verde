@@ -97,6 +97,26 @@ export default async function Home() {
               <h2 className="font-display text-4xl font-bold text-verde">{S("plans_title")}</h2>
               <p className="mx-auto mt-2 max-w-2xl text-sage">{S("plans_subtitle")}</p>
             </div>
+
+            {/* 🌟 بطاقة "طلبات من اختيارك" الجديدة - مضافة مباشرة فوق الباقات العادية */}
+            <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-verde to-[#264234] p-8 text-white shadow-xl md:flex md:items-center md:justify-between">
+              <div className="space-y-2 md:max-w-2xl">
+                <span className="inline-block rounded-full bg-sky px-3 py-1 text-xs font-bold text-verde">
+                  جديدنا ✨ · Custom Meals
+                </span>
+                <h3 className="font-display text-3xl font-bold">طلبات من اختيارك (تفصيل وجبتك الكاملة)</h3>
+                <p className="text-white/85 text-sm md:text-base">
+                  صمم وجبتك الصحية بنفسك عبر 6 خطوات تفاعلية: اختر غرامات البروتين، عدد الوجبات، الأيام، نوع البروتين، الكارب، والتغليف والإضافات الجانبية بدقة.
+                </p>
+              </div>
+              <div className="mt-6 md:mt-0">
+                <Link href="/register?type=custom" className="btn btn-sky !px-8 !py-3 text-lg font-bold shadow-md block text-center md:inline-block">
+                  ابدأ تفصيل وجبتك الآن 🍽️
+                </Link>
+              </div>
+            </div>
+
+            {/* شبكة الباقات العادية */}
             <div className="grid gap-6 md:grid-cols-3">
               {catalog.packages.map((pk) => (
                 <article key={pk.id} className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-md">

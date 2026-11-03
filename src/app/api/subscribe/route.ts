@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   addons,
+  customMealOptions,
   customers,
   deliverySlots,
   discountCodes,
@@ -32,18 +33,16 @@ export async function POST(req: Request) {
   const existing = await getCustomer();
   const today = todayBH();
 
+  const subscriptionType = b.subscriptionType === "custom" ? "custom" : "packages";
   const days = Math.round(Number(b.days));
   if (!(days >= MIN_DAYS && days <= MAX_DAYS)) return bad("invalid_input");
 
-  const [opt] = await db
-    .select()
-    .from(packageOptions)
-    .where(and(eq(packageOptions.id, Number(b.optionId)), eq(packageOptions.active, true)));
-  if (!opt) return bad("invalid_input");
-  const [pkg] = await db
-    .select()
-    .from(packages)
-    .where(and(eq(packages.id, opt.packageId), eq(packages.active, true)));
+  let opt: any = null;
+  let pkg: any = null;
+  let customDetails: any = null;
+  let pricing: any = null;
+
+  // التحقق بناءً على نوع الاشتراك
   const [slot] = await db
     .select()
     .from(deliverySlots)
@@ -56,16 +55,83 @@ export async function POST(req: Request) {
     .select()
     .from(paymentMethods)
     .where(and(eq(paymentMethods.key, str(b.paymentMethod)), eq(paymentMethods.active, true)));
-  if (!pkg || !slot || !region) return bad("invalid_input");
-  if (!method) return bad("invalid_method");
 
-  const addonIds: number[] = Array.isArray(b.addonIds) ? b.addonIds.map(Number).filter(Number.isFinite) : [];
-  const chosen = addonIds.length
-    ? await db.select().from(addons).where(and(inArray(addons.id, addonIds), eq(addons.active, true)))
-    : [];
+  if (!slot || !region) return bad("invalid_input");
+  if (!method) return bad("invalid_method");
 
   const house = str(b.house), road = str(b.road), block = str(b.block), flat = str(b.flat);
   if (!house || !road || !block) return bad("address_required");
+
+  const disc = await findDiscount(str(b.discountCode));
+  if (str(b.discountCode) && !disc) return bad("invalid_code");
+
+  if (subscriptionType === "packages") {
+    [opt] = await db
+      .select()
+      .from(packageOptions)
+      .where(and(eq(packageOptions.id, Number(b.optionId)), eq(packageOptions.active, true)));
+    if (!opt) return bad("invalid_input");
+    [pkg] = await db
+      .select()
+      .from(packages)
+      .where(and(eq(packages.id, opt.packageId), eq(packages.active, true)));
+    if (!pkg) return bad("invalid_input");
+
+    const addonIds: number[] = Array.isArray(b.addonIds) ? b.addonIds.map(Number).filter(Number.isFinite) : [];
+    const chosen = addonIds.length
+      ? await db.select().from(addons).where(and(inArray(addons.id, addonIds), eq(addons.active, true)))
+      : [];
+
+    pricing = computePricing({
+      price5: opt.price5,
+      days,
+      addons: chosen,
+      regionFee: region.fee,
+      discount: disc ? { type: disc.type, value: disc.value } : null,
+    });
+  } else {
+    // حساب أسعار "طلبات من اختيارك"
+    customDetails = b.customDetails;
+    if (!customDetails || !customDetails.proteinId || !customDetails.carbId) return bad("invalid_input");
+
+    // جلب الخيارات المخصصة من قاعدة البيانات للتأكد من صحتها
+    const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
+    const proteinOpt = customOpts.find((o) => o.id === Number(customDetails.proteinId));
+    const carbOpt = customOpts.find((o) => o.id === Number(customDetails.carbId));
+    const packagingOpt = customOpts.find((o) => o.id === Number(customDetails.packagingId));
+    const sideAddons = customOpts.filter((o) => Array.isArray(customDetails.sideAddonIds) && customDetails.sideAddonIds.includes(o.id));
+
+    if (!proteinOpt || !carbOpt) return bad("invalid_input");
+
+    const baseMealRate = 1.500;
+    const proteinExtra = Number(proteinOpt.price || 0);
+    const carbExtra = Number(carbOpt.price || 0);
+    const packagingExtra = packagingOpt ? Number(packagingOpt.price || 0) : 0;
+
+    const singleMealPrice = baseMealRate + proteinExtra + carbExtra + packagingExtra;
+    const dailyTotal = singleMealPrice * Number(customDetails.dailyMeals || 3);
+    const mealsBaseTotal = dailyTotal * days;
+
+    const sidesDailyPrice = sideAddons.reduce((sum, s) => sum + Number(s.price), 0);
+    const sidesTotal = sidesDailyPrice * days;
+
+    const subtotal = mealsBaseTotal + sidesTotal;
+    let discountAmount = 0;
+    if (disc) {
+      if (disc.type === "percent") discountAmount = (subtotal * disc.value) / 100;
+      else if (disc.type === "fixed") discountAmount = disc.value;
+    }
+
+    const total = Math.max(0, subtotal - discountAmount + region.fee);
+
+    pricing = {
+      subtotal,
+      discount: discountAmount,
+      deliveryFee: region.fee,
+      total,
+      addonsTotal: sidesTotal,
+    };
+  }
 
   let name = existing?.name ?? "";
   let email = "", phone = "", password = "";
@@ -79,17 +145,6 @@ export async function POST(req: Request) {
     const [dup] = await db.select({ id: customers.id }).from(customers).where(eq(customers.email, email));
     if (dup) return bad("email_exists", 409);
   }
-
-  const disc = await findDiscount(str(b.discountCode));
-  if (str(b.discountCode) && !disc) return bad("invalid_code");
-
-  const pricing = computePricing({
-    price5: opt.price5,
-    days,
-    addons: chosen,
-    regionFee: region.fee,
-    discount: disc ? { type: disc.type, value: disc.value } : null,
-  });
 
   // start date: at least tomorrow, and after any existing subscription
   let minStart = addDays(today, 1);
@@ -139,47 +194,88 @@ export async function POST(req: Request) {
       } else {
         await tx.update(customers).set(profile).where(eq(customers.id, existing.id));
       }
+
+      const subValues = subscriptionType === "packages" ? {
+        customerId,
+        packageId: pkg.id,
+        optionId: opt.id,
+        packageAr: pkg.nameAr,
+        packageEn: pkg.nameEn,
+        optionAr: opt.labelAr,
+        optionEn: opt.labelEn,
+        protein: pkg.protein,
+        carbs: pkg.carbs,
+        mealsPerDay: opt.mealsPerDay,
+        days,
+        startDate,
+        endDate,
+        regionId: region.id,
+        regionAr: region.nameAr,
+        regionEn: region.nameEn,
+        house,
+        flat,
+        road,
+        block,
+        slotId: slot.id,
+        slotGroupAr: slot.groupAr,
+        slotGroupEn: slot.groupEn,
+        slotStart: slot.startTime,
+        slotEnd: slot.endTime,
+        addons: (b.addonIds ? [] : []), // يمكن تخصيصها حسب الحاجة
+        unwanted: profile.unwanted,
+        allergy: profile.allergy,
+        weight: profile.weight,
+        height: profile.height,
+        subtotal: pricing.subtotal,
+        discount: pricing.discount,
+        discountCode: disc?.code ?? "",
+        deliveryFee: pricing.deliveryFee,
+        total: pricing.total,
+        paymentMethod: method.key,
+      } : {
+        customerId,
+        packageId: null,
+        optionId: null,
+        packageAr: "طلبات من اختيارك (مخصص)",
+        packageEn: "Custom Built Meal",
+        optionAr: `بروتين ${customDetails.proteinGrams} - ${customDetails.dailyMeals} وجبات`,
+        optionEn: `Protein ${customDetails.proteinGrams} - ${customDetails.dailyMeals} meals`,
+        protein: customDetails.proteinGrams,
+        carbs: "مخصص",
+        mealsPerDay: Number(customDetails.dailyMeals),
+        days,
+        startDate,
+        endDate,
+        regionId: region.id,
+        regionAr: region.nameAr,
+        regionEn: region.nameEn,
+        house,
+        flat,
+        road,
+        block,
+        slotId: slot.id,
+        slotGroupAr: slot.groupAr,
+        slotGroupEn: slot.groupEn,
+        slotStart: slot.startTime,
+        slotEnd: slot.endTime,
+        addons: [],
+        unwanted: profile.unwanted,
+        allergy: profile.allergy,
+        weight: profile.weight,
+        height: profile.height,
+        subtotal: pricing.subtotal,
+        discount: pricing.discount,
+        discountCode: disc?.code ?? "",
+        deliveryFee: pricing.deliveryFee,
+        total: pricing.total,
+        paymentMethod: method.key,
+      };
+
       const [sub] = await tx
         .insert(subscriptions)
-        .values({
-          customerId,
-          packageId: pkg.id,
-          optionId: opt.id,
-          packageAr: pkg.nameAr,
-          packageEn: pkg.nameEn,
-          optionAr: opt.labelAr,
-          optionEn: opt.labelEn,
-          protein: pkg.protein,
-          carbs: pkg.carbs,
-          mealsPerDay: opt.mealsPerDay,
-          days,
-          startDate,
-          endDate,
-          regionId: region.id,
-          regionAr: region.nameAr,
-          regionEn: region.nameEn,
-          house,
-          flat,
-          road,
-          block,
-          slotId: slot.id,
-          slotGroupAr: slot.groupAr,
-          slotGroupEn: slot.groupEn,
-          slotStart: slot.startTime,
-          slotEnd: slot.endTime,
-          addons: chosen.map((a) => ({ id: a.id, nameAr: a.nameAr, nameEn: a.nameEn, price: a.price, pricingType: a.pricingType })),
-          unwanted: profile.unwanted,
-          allergy: profile.allergy,
-          weight: profile.weight,
-          height: profile.height,
-          subtotal: pricing.subtotal,
-          discount: pricing.discount,
-          discountCode: disc?.code ?? "",
-          deliveryFee: pricing.deliveryFee,
-          total: pricing.total,
-          paymentMethod: method.key,
-        })
+        .values(subValues as any)
         .returning({ id: subscriptions.id });
+
       await tx.insert(payments).values({
         customerId,
         subscriptionId: sub.id,
@@ -189,6 +285,7 @@ export async function POST(req: Request) {
         reference: pay.reference,
         cardLast4: pay.last4,
       });
+
       await tx.insert(orders).values(
         Array.from({ length: days }, (_, i) => ({
           subscriptionId: sub.id,
@@ -197,6 +294,7 @@ export async function POST(req: Request) {
           dayNumber: i + 1,
         })),
       );
+
       if (disc) {
         await tx
           .update(discountCodes)
@@ -205,6 +303,7 @@ export async function POST(req: Request) {
       }
       return { customerId, subId: sub.id };
     });
+
     if (!existing) await setSession("customer", result.customerId);
     return json({ ok: true, subscriptionId: result.subId, reference: pay.reference });
   } catch (e) {
