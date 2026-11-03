@@ -13,7 +13,8 @@ const NAV = [
   { href: "/admin/orders", key: "orders", icon: "📦", perm: "orders" },
   { href: "/admin/reports", key: "reports", icon: "📊", perm: "reports" },
   { href: "/admin/packages", key: "packages", icon: "🥗", perm: "packages" },
-  { href: "/admin/custom-meals", key: "custom_meals", icon: "🍽️", perm: "settings" }, // 👈 تمت إضافة قسم طلبات من اختيارك هنا
+  { href: "/admin/custom-meals", key: "custom_meals", icon: "🍽️", perm: "settings" },
+  { href: "/admin/protein-prices", key: "protein_prices", icon: "⚖️", perm: "settings" }, // 👈 تمت إضافة أسعار أوزان البروتين هنا
   { href: "/admin/addons", key: "addons", icon: "➕", perm: "addons" },
   { href: "/admin/delivery-times", key: "delivery_times", icon: "🕒", perm: "delivery_times" },
   { href: "/admin/regions", key: "regions", icon: "📍", perm: "regions" },
@@ -33,7 +34,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     (n) => ({ 
       href: n.href, 
       icon: n.icon, 
-      label: n.key === "custom_meals" ? "طلبات من اختيارك" : t("nav_" + n.key) // 👈 وضعنا الاسم مباشرة لضمان ظهوره الفوري بالعربي
+      label: n.key === "custom_meals" 
+        ? "طلبات من اختيارك" 
+        : n.key === "protein_prices" 
+        ? "أسعار أوزان البروتين" // 👈 تسمية القسم الجديد بالعربي
+        : t("nav_" + n.key)
     }),
   );
   return (

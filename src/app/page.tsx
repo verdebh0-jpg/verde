@@ -98,20 +98,26 @@ export default async function Home() {
               <p className="mx-auto mt-2 max-w-2xl text-sage">{S("plans_subtitle")}</p>
             </div>
 
-            {/* 🌟 بطاقة "طلبات من اختيارك" الجديدة - مضافة مباشرة فوق الباقات العادية */}
+            {/* 🌟 بطاقة "طلبات من اختيارك" الديناميكية (تدعم العربية والإنجليزية) */}
             <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-verde to-[#264234] p-8 text-white shadow-xl md:flex md:items-center md:justify-between">
               <div className="space-y-2 md:max-w-2xl">
                 <span className="inline-block rounded-full bg-sky px-3 py-1 text-xs font-bold text-verde">
-                  جديدنا ✨ · Custom Meals
+                  {locale === "ar" ? "جديدنا ✨ · Custom Meals" : "New ✨ · Custom Meals"}
                 </span>
-                <h3 className="font-display text-3xl font-bold">طلبات من اختيارك (تفصيل وجبتك الكاملة)</h3>
+                <h3 className="font-display text-3xl font-bold">
+                  {locale === "ar" 
+                    ? "طلبات من اختيارك (تفصيل وجبتك الكاملة)" 
+                    : "Custom Meals (Build Your Complete Meal)"}
+                </h3>
                 <p className="text-white/85 text-sm md:text-base">
-                  صمم وجبتك الصحية بنفسك عبر 6 خطوات تفاعلية: اختر غرامات البروتين، عدد الوجبات، الأيام، نوع البروتين، الكارب، والتغليف والإضافات الجانبية بدقة.
+                  {locale === "ar"
+                    ? "صمم وجبتك الصحية بنفسك عبر 6 خطوات تفاعلية: اختر غرامات البروتين، عدد الوجبات، الأيام، نوع البروتين، الكارب، والتغليف والإضافات الجانبية بدقة."
+                    : "Design your healthy meal through 6 interactive steps: choose protein grams, number of meals, days, protein type, carbs, packaging, and side add-ons precisely."}
                 </p>
               </div>
               <div className="mt-6 md:mt-0">
                 <Link href="/register?type=custom" className="btn btn-sky !px-8 !py-3 text-lg font-bold shadow-md block text-center md:inline-block">
-                  ابدأ تفصيل وجبتك الآن 🍽️
+                  {locale === "ar" ? "ابدأ تفصيل وجبتك الآن 🍽️" : "Start Building Your Meal Now 🍽️"}
                 </Link>
               </div>
             </div>

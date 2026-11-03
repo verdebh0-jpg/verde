@@ -242,3 +242,12 @@ export const customMealOptions = pgTable("custom_meal_options", {
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
 });
+export const proteinPrices = pgTable("protein_prices", {
+  id: serial("id").primaryKey(),
+  weightKey: text("weight_key").notNull().unique(),
+  labelAr: text("label_ar").notNull(),
+  labelEn: text("label_en").notNull(),
+  price: decimal("price", { precision: 10, scale: 3 }).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+});

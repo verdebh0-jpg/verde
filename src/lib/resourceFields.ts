@@ -67,6 +67,14 @@ export const RESOURCE_FIELDS: Record<string, Field[]> = {
     sort,
     active,
   ],
+"protein-prices": [
+    { key: "weightKey", label: ["المعرف (مثل 100g)", "Weight Key"], type: "text", required: true, list: true },
+    { key: "labelAr", label: ["التسمية بالعربي", "Label (Arabic)"], type: "text", required: true, list: true },
+    { key: "labelEn", label: ["التسمية بالإنجليزية", "Label (English)"], type: "text", required: true, list: true },
+    { key: "price", label: ["السعر (د.ب)", "Price (BD)"], type: "number", list: true, required: true },
+    sort,
+    active,
+  ],
   addons: [
     nameAr,
     nameEn,

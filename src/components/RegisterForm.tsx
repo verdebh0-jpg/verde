@@ -88,11 +88,14 @@ export default function RegisterForm({
   const packagingOptions = useMemo(() => customMealsList.filter((m) => m.category === "packaging"), [customMealsList]);
   const sideAddonsList = useMemo(() => customMealsList.filter((m) => m.category === "side"), [customMealsList]);
 
-  // حساب أسعار "طلبات من اختيارك"
+ // حساب أسعار "طلبات من اختيارك" ديناميكياً بناءً على أسعار لوحة التحكم
   const customPricing = useMemo(() => {
     if (subscriptionType !== "custom") return null;
 
-    const baseMealRate = 1.500; // سعر قاعدة الوجبة الأساسية
+    // البحث عن سعر الوزن المختار من قاعدة البيانات (افتراضي 1.500 إن لم يوجد)
+    const matchedProteinPrice = catalog.proteinPrices?.find((p) => p.weightKey === customProteinGrams);
+    const baseMealRate = matchedProteinPrice ? Number(matchedProteinPrice.price) : 1.500;
+
     const proteinExtra = selectedProteinId ? Number(customMealsList.find((m) => m.id === selectedProteinId)?.price || 0) : 0;
     const carbExtra = selectedCarbId ? Number(customMealsList.find((m) => m.id === selectedCarbId)?.price || 0) : 0;
     const packagingExtra = selectedPackagingId ? Number(customMealsList.find((m) => m.id === selectedPackagingId)?.price || 0) : 0;
@@ -126,7 +129,7 @@ export default function RegisterForm({
       discountAmount,
       total,
     };
-  }, [subscriptionType, customMealsList, selectedProteinId, selectedCarbId, selectedPackagingId, customDailyMeals, customDays, customAddonIds, sideAddonsList, regionId, catalog.regions, disc]);
+  }, [subscriptionType, catalog.proteinPrices, catalog.regions, customProteinGrams, customMealsList, selectedProteinId, selectedCarbId, selectedPackagingId, customDailyMeals, customDays, customAddonIds, sideAddonsList, regionId, disc]);
 
   // حساب الباقات الجاهزة
   const allOptions = useMemo(
@@ -339,16 +342,19 @@ export default function RegisterForm({
                   اختر كمية غرامات البروتين للوجبة:
                 </h3>
                 <div className="grid grid-cols-3 gap-3">
-                  {["100g", "150g", "200g"].map((g) => (
+                  {(catalog.proteinPrices || [{ weightKey: "100g", price: 1.200 }, { weightKey: "150g", price: 1.500 }, { weightKey: "200g", price: 1.800 }]).map((item) => (
                     <button
-                      key={g}
+                      key={item.weightKey}
                       type="button"
-                      onClick={() => setCustomProteinGrams(g)}
-                      className={`py-3 rounded-xl border font-bold text-sm transition ${
-                        customProteinGrams === g ? "bg-verde text-white border-verde" : "border-slate-200 hover:border-verde"
+                      onClick={() => setCustomProteinGrams(item.weightKey)}
+                      className={`p-3 rounded-xl border text-center transition flex flex-col items-center justify-center ${
+                        customProteinGrams === item.weightKey ? "bg-verde text-white border-verde font-bold" : "border-slate-200 hover:border-verde"
                       }`}
                     >
-                      {g}
+                      <span className="text-base">{item.weightKey}</span>
+                      <span className={`text-xs mt-1 ${customProteinGrams === item.weightKey ? "text-white/80" : "text-sage"}`}>
+                        {fmtMoney(Number(item.price))} د.ب
+                      </span>
                     </button>
                   ))}
                 </div>
