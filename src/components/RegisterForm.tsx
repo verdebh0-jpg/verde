@@ -88,13 +88,35 @@ export default function RegisterForm({
   const packagingOptions = useMemo(() => customMealsList.filter((m) => m.category === "packaging"), [customMealsList]);
   const sideAddonsList = useMemo(() => customMealsList.filter((m) => m.category === "side"), [customMealsList]);
 
- // حساب أسعار "طلبات من اختيارك" ديناميكياً بناءً على أسعار لوحة التحكم
+ // حساب أسعار "طلبات من اختيارك" بناءً على الجدول التفصيلي للوزن وعدد الوجبات يومياً
   const customPricing = useMemo(() => {
     if (subscriptionType !== "custom") return null;
 
-    // البحث عن سعر الوزن المختار من قاعدة البيانات (افتراضي 1.500 إن لم يوجد)
-    const matchedProteinPrice = catalog.proteinPrices?.find((p) => p.weightKey === customProteinGrams);
-    const baseMealRate = matchedProteinPrice ? Number(matchedProteinPrice.price) : 1.500;
+    // تحديد سعر القاعدة بناءً على الوزن وعدد الوجبات في اليوم
+    let baseMealRate = 1.500; // قيمة افتراضية احتياطية
+
+    if (customProteinGrams === "100g") {
+      if (customDailyMeals === 1) baseMealRate = 2.000;
+      else if (customDailyMeals === 2) baseMealRate = 1.625;
+      else if (customDailyMeals === 3) baseMealRate = 1.416;
+      else if (customDailyMeals === 4) baseMealRate = 1.350;
+      else if (customDailyMeals === 5) baseMealRate = 1.300;
+      else if (customDailyMeals >= 6) baseMealRate = 1.250;
+    } else if (customProteinGrams === "150g") {
+      if (customDailyMeals === 1) baseMealRate = 2.500;
+      else if (customDailyMeals === 2) baseMealRate = 1.875;
+      else if (customDailyMeals === 3) baseMealRate = 1.583;
+      else if (customDailyMeals === 4) baseMealRate = 1.500;
+      else if (customDailyMeals === 5) baseMealRate = 1.450;
+      else if (customDailyMeals >= 6) baseMealRate = 1.400;
+    } else if (customProteinGrams === "200g") {
+      if (customDailyMeals === 1) baseMealRate = 2.900;
+      else if (customDailyMeals === 2) baseMealRate = 2.125;
+      else if (customDailyMeals === 3) baseMealRate = 1.740;
+      else if (customDailyMeals === 4) baseMealRate = 1.650;
+      else if (customDailyMeals === 5) baseMealRate = 1.600;
+      else if (customDailyMeals >= 6) baseMealRate = 1.550;
+    }
 
     const proteinExtra = selectedProteinId ? Number(customMealsList.find((m) => m.id === selectedProteinId)?.price || 0) : 0;
     const carbExtra = selectedCarbId ? Number(customMealsList.find((m) => m.id === selectedCarbId)?.price || 0) : 0;
@@ -129,7 +151,7 @@ export default function RegisterForm({
       discountAmount,
       total,
     };
-  }, [subscriptionType, catalog.proteinPrices, catalog.regions, customProteinGrams, customMealsList, selectedProteinId, selectedCarbId, selectedPackagingId, customDailyMeals, customDays, customAddonIds, sideAddonsList, regionId, disc]);
+  }, [subscriptionType, customProteinGrams, customDailyMeals, customMealsList, selectedProteinId, selectedCarbId, selectedPackagingId, customDays, customAddonIds, sideAddonsList, regionId, disc, catalog.regions]);
 
   // حساب الباقات الجاهزة
   const allOptions = useMemo(
