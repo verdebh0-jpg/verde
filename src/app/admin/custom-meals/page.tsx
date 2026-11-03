@@ -1,29 +1,30 @@
-import ResourcePage from "@/components/ResourcePage"; // أو التأكد من المسار النسبي الصحيح
+import { asc } from "drizzle-orm";
+import { db } from "@/db";
+import { customMealOptions } from "@/db/schema";
+import CrudManager from "@/components/CrudManager";
+import { requireStaffPage } from "@/lib/auth";
+import { getI18n } from "@/lib/locale";
+import { RESOURCE_FIELDS } from "@/lib/resourceFields";
 
-export default function CustomMealsAdminPage() {
+export default async function CustomMealsAdminPage() {
+  await requireStaffPage("settings");
+  const { t } = await getI18n();
+
+  const options = await db
+    .select()
+    .from(customMealOptions)
+    .orderBy(asc(customMealOptions.sortOrder), asc(customMealOptions.id));
+
   return (
-    <ResourcePage
-      resource="custom-meals"
-      titleAr="طلبات من اختيارك"
-      titleEn="Custom Built Meals"
-      fields={[
-        { name: "nameAr", label: "الاسم بالعربي", type: "text", required: true },
-        { name: "nameEn", label: "الاسم بالإنجليزية", type: "text", required: true },
-        {
-          name: "category",
-          label: "التصنيف",
-          type: "select",
-          required: true,
-          options: [
-            { value: "protein", label: "بروتين (Protein)" },
-            { value: "carb", label: "كارب (Carb)" },
-            { value: "packaging", label: "تغليف (Packaging)" },
-            { value: "side", label: "إضافة جانبية (Side Addon)" },
-          ],
-        },
-        { name: "price", label: "السعر الإضافي (د.ب)", type: "number", step: "0.001", required: true },
-        { name: "active", label: "مفعل", type: "boolean" },
-      ]}
-    />
+    <>
+      <h1 className="font-display text-4xl font-bold text-verde">طلبات من اختيارك</h1>
+      <CrudManager
+        resource="custom-meals"
+        title="طلبات من اختيارك"
+        fields={RESOURCE_FIELDS["custom-meals"]}
+        initial={options}
+        defaults={{ active: true, price: "0.000", sortOrder: 0 }}
+      />
+    </>
   );
 }

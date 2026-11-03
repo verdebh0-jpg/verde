@@ -46,6 +46,27 @@ export const RESOURCE_FIELDS: Record<string, Field[]> = {
     sort,
     active,
   ],
+  // 🌟 أضفنا هذا القسم هنا ليتوافق مع لوحة التحكم CrudManager تماماً
+  "custom-meals": [
+    nameAr,
+    nameEn,
+    {
+      key: "category",
+      label: ["التصنيف", "Category"],
+      type: "select",
+      required: true,
+      list: true,
+      options: [
+        { value: "protein", label: "protein / بروتين" },
+        { value: "carb", label: "carb / كارب" },
+        { value: "packaging", label: "packaging / تغليف" },
+        { value: "side", label: "side / إضافة جانبية" },
+      ],
+    },
+    { key: "price", label: ["السعر الإضافي (د.ب)", "Extra Price (BD)"], type: "number", list: true },
+    sort,
+    active,
+  ],
   addons: [
     nameAr,
     nameEn,
