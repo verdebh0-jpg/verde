@@ -3,7 +3,8 @@ import { db } from "@/db";
 import {
   addons,
   carouselImages,
-  customMealOptions, // 👈 1. استيراد جدول الخيارات المخصصة
+  customMealOptions,
+  proteinPrices, // 👈 1. استيراد جدول أسعار الأوزان الجديد
   deliverySlots,
   packageOptions,
   packages,
@@ -23,7 +24,7 @@ export async function getSettings(): Promise<Record<string, string>> {
 }
 
 export async function getCatalog() {
-  const [pk, opts, ad, sl, rg, pm, st, cm] = await Promise.all([
+  const [pk, opts, ad, sl, rg, pm, st, cm, pp] = await Promise.all([
     db.select().from(packages).where(eq(packages.active, true)).orderBy(asc(packages.sortOrder), asc(packages.id)),
     db.select().from(packageOptions).where(eq(packageOptions.active, true)).orderBy(asc(packageOptions.sortOrder), asc(packageOptions.id)),
     db.select().from(addons).where(eq(addons.active, true)).orderBy(asc(addons.sortOrder), asc(addons.id)),
@@ -31,7 +32,8 @@ export async function getCatalog() {
     db.select().from(regions).where(eq(regions.active, true)).orderBy(asc(regions.sortOrder), asc(regions.id)),
     db.select().from(paymentMethods).where(eq(paymentMethods.active, true)).orderBy(asc(paymentMethods.sortOrder), asc(paymentMethods.id)),
     getSettings(),
-    db.select().from(customMealOptions).where(eq(customMealOptions.active, true)).orderBy(asc(customMealOptions.sortOrder), asc(customMealOptions.id)), // 👈 2. جلب الخيارات المخصصة الفعالة
+    db.select().from(customMealOptions).where(eq(customMealOptions.active, true)).orderBy(asc(customMealOptions.sortOrder), asc(customMealOptions.id)),
+    db.select().from(proteinPrices).orderBy(asc(proteinPrices.sortOrder), asc(proteinPrices.id)), // 👈 2. جلب جدول أسعار الأوزان
   ]);
 
   return {
@@ -41,7 +43,8 @@ export async function getCatalog() {
     regions: rg,
     methods: pm,
     settings: st,
-    customMeals: cm, // 👈 3. إضافتها كحقل داخل الكتالوج لاستخدامه في استمارة التسجيل
+    customMeals: cm,
+    proteinPrices: pp, // 👈 3. إضافتها داخل الكتالوج لتروّض TypeScript تماماً
   };
 }
 
