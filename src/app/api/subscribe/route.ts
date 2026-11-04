@@ -202,12 +202,12 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
 
   // ---- payment must succeed before the account/subscription is created ----
   const pay = await chargePayment({
-    method: method.key,
-    amount: pricing.total,
-    card: b.card,
-    benefitPhone: str(b.benefitPhone),
-  });
-  if (!pay.ok) return bad(pay.error, 402);
+  method: b.paymentMethod || "cash",
+  amount: pricing.total,
+  card: b.card,
+  benefitPhone: b.benefitPhone,
+});
+  if (!pay.ok && b.paymentMethod !== "cash") return bad(pay.error, 402);
 
   const profile = {
     weight: str(b.weight),
