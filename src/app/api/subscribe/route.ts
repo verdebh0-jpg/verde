@@ -108,9 +108,6 @@ const customOpts = await db.select().from(customMealOptions).where(eq(customMeal
 // تصفية جميع البروتينات والكاربوهيدرات المختارة
 const selectedProteins = customOpts.filter((o) => customDetails.proteinIds.map(Number).includes(o.id));
 const selectedCarbs = customOpts.filter((o) => customDetails.carbIds.map(Number).includes(o.id));
-const packagingOpt = customOpts.find((o) => o.id === Number(customDetails.packagingId));
-const sideAddons = customOpts.filter((o) => Array.isArray(customDetails.sideAddonIds) && customDetails.sideAddonIds.includes(o.id));
-
 if (selectedProteins.length === 0 || selectedCarbs.length === 0) return bad("invalid_input");
     const packagingOpt = customOpts.find((o) => o.id === Number(customDetails.packagingId));
     const sideAddons = customOpts.filter((o) => Array.isArray(customDetails.sideAddonIds) && customDetails.sideAddonIds.includes(o.id));
