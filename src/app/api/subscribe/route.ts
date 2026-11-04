@@ -11,6 +11,7 @@ import {
   packages,
   paymentMethods,
   payments,
+    preferred_proteins,
   regions,
   subscriptions,
 } from "@/db/schema";
@@ -93,33 +94,60 @@ let selectedCarbs: any[] = [];
   } else {
     // حساب أسعار "طلبات من اختيارك"
     customDetails = b.customDetails;
-if (
-  !customDetails ||
-  !Array.isArray(customDetails.proteinIds) ||
-  customDetails.proteinIds.length === 0 ||
-  !Array.isArray(customDetails.carbIds) ||
-  customDetails.carbIds.length === 0
-) {
-  return bad("invalid_input");
-}
+    if (
+      !customDetails ||
+      !Array.isArray(customDetails.proteinIds) ||
+      customDetails.proteinIds.length === 0 ||
+      !Array.isArray(customDetails.carbIds) ||
+      customDetails.carbIds.length === 0
+    ) {
+      return bad("invalid_input");
+    }
 
-// جلب الخيارات المخصصة من قاعدة البيانات للتأكد من صحتها
-const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
+    // جلب جدول preferred_proteins بدلاً من customMealOptions للبروتينات
+    const preferredProts = await db.select().from(preferred_proteins).where(eq(preferred_proteins.active, true));
+    const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
 
-// تصفية جميع البروتينات والكاربوهيدرات المختارة
-selectedProteins = customOpts.filter((o) => customDetails.proteinIds.map(Number).includes(o.id));
-selectedCarbs = customOpts.filter((o) => customDetails.carbIds.map(Number).includes(o.id));
-if (selectedProteins.length === 0 || selectedCarbs.length === 0) return bad("invalid_input");
+    const rawProteinIds: number[] = customDetails.proteinIds.map(Number).filter(Number.isFinite);
+    const rawCarbIds: number[] = customDetails.carbIds.map(Number).filter(Number.isFinite);
+
+    if (rawProteinIds.length === 0 || rawCarbIds.length === 0) return bad("invalid_input");
+
+    const proteinCounts: Record<number, number> = {};
+    rawProteinIds.forEach((id) => {
+      proteinCounts[id] = (proteinCounts[id] || 0) + 1;
+    });
+
+    const selectedProtsWithQty = Object.entries(proteinCounts).map(([idStr, qty]) => {
+      const pObj = preferredProts.find((p) => p.id === Number(idStr));
+      return { pObj, qty };
+    }).filter((x) => x.pObj !== undefined);
+
+    if (selectedProtsWithQty.length === 0) return bad("invalid_input");
+
+    selectedCarbs = customOpts.filter((o) => rawCarbIds.includes(o.id));
     const packagingOpt = customOpts.find((o) => o.id === Number(customDetails.packagingId));
     const sideAddons = customOpts.filter((o) => Array.isArray(customDetails.sideAddonIds) && customDetails.sideAddonIds.includes(o.id));
+
+    let totalProteinsExtraPrice = 0;
+    selectedProtsWithQty.forEach(({ pObj, qty }) => {
+      if (!pObj) return;
+      if (pObj.freePolicy === "one_time_free") {
+        if (qty > 1) {
+          totalProteinsExtraPrice += (qty - 1) * Number(pObj.extraPrice || 0);
+        }
+      } else if (pObj.freePolicy === "always_free") {
+        totalProteinsExtraPrice += 0;
+      }
+    });
+
     const baseMealRate = 1.500;
-const proteinExtra = selectedProteins.reduce((sum, p) => sum + Number(p.price || 0), 0);
-const carbExtra = selectedCarbs.reduce((sum, c) => sum + Number(c.price || 0), 0);
+    const carbExtra = selectedCarbs.reduce((sum, c) => sum + Number(c.price || 0), 0);
     const packagingExtra = packagingOpt ? Number(packagingOpt.price || 0) : 0;
 
-    const singleMealPrice = baseMealRate + proteinExtra + carbExtra + packagingExtra;
-    const dailyTotal = singleMealPrice * Number(customDetails.dailyMeals || 3);
-    const mealsBaseTotal = dailyTotal * days;
+    const dailyMealsCount = Number(customDetails.dailyMeals || 3);
+    const singleMealBasePrice = baseMealRate + carbExtra + packagingExtra;
+    const mealsBaseTotal = (singleMealBasePrice * dailyMealsCount * days) + (totalProteinsExtraPrice * days);
 
     const sidesDailyPrice = sideAddons.reduce((sum, s) => sum + Number(s.price), 0);
     const sidesTotal = sidesDailyPrice * days;
@@ -241,11 +269,44 @@ const carbExtra = selectedCarbs.reduce((sum, c) => sum + Number(c.price || 0), 0
         deliveryFee: pricing.deliveryFee,
         total: pricing.total,
         paymentMethod: method.key,
-      } : {
+      : {
         customerId,
         packageId: null,
         optionId: null,
         packageAr: "طلبات من اختيارك (مخصص)",
+        packageEn: "Custom Built Meal",
+        optionAr: `بروتين مخصص - ${customDetails.dailyMeals} وجبات يومياً`,
+        optionEn: `Custom Protein - ${customDetails.dailyMeals} meals daily`,
+        protein: selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr} (${qty})`).join('، '),
+        carbs: selectedCarbs.map(c => c.nameAr).join('، '),
+        mealsPerDay: dailyMealsCount,
+        days,
+        startDate,
+        endDate,
+        regionId: region.id,
+        regionAr: region.nameAr,
+        regionEn: region.nameEn,
+        house,
+        flat,
+        road,
+        block,
+        slotId: slot.id,
+        slotGroupAr: slot.groupAr,
+        slotGroupEn: slot.groupEn,
+        slotStart: slot.startTime,
+        slotEnd: slot.endTime,
+        addons: [],
+        unwanted: profile.unwanted,
+        allergy: profile.allergy,
+        weight: profile.weight,
+        height: profile.height,
+        subtotal: pricing.subtotal,
+        discount: pricing.discount,
+        discountCode: disc?.code ?? "",
+        deliveryFee: pricing.deliveryFee,
+        total: pricing.total,
+        paymentMethod: method.key,
+      };
         packageEn: "Custom Built Meal",
         optionAr: `بروتين: ${selectedProteins.map(p => p.nameAr).join('، ')} - ${customDetails.dailyMeals} وجبات`,
 optionEn: `Protein: ${selectedProteins.map(p => p.nameEn).join(', ')} - ${customDetails.dailyMeals} meals`,
