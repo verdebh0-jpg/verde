@@ -344,9 +344,8 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
     });
 
     if (!existing) await setSession("customer", result.customerId);
-    return json({ ok: true, subscriptionId: result.subId, reference: pay.reference });
-  } catch (e) {
-    console.error("subscribe failed", e);
-    return bad("server_error", 500);
-  }
-}
+    return json({ 
+  ok: true, 
+  subscriptionId: result.subId, 
+  reference: pay.ok ? pay.reference : "COD" 
+});
