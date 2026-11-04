@@ -201,7 +201,7 @@ export async function POST(req: Request) {
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(reqStart) && reqStart >= minStart ? reqStart : minStart;
   const endDate = addDays(startDate, days - 1);
 
-  // ---- معالجة مرنة وبسيطة للدفع بدون تعقيد (كاش، بنفت، أو إيبان) ----
+  // ---- معالجة مرنة وبسيطة للدفع بدون تعقيد (كاش، بنفت، أو بطاقة) ----
   let pay: any = { ok: true, status: "paid", reference: "PAY-" + Date.now().toString(36).toUpperCase(), last4: "" };
   
   if (method.key === "cash") {
@@ -260,7 +260,7 @@ export async function POST(req: Request) {
         regionAr: region.nameAr,
         regionEn: region.nameEn,
         house,
-        flat,
+        flat: flat || "",
         road,
         block,
         slotId: slot.id,
@@ -269,10 +269,10 @@ export async function POST(req: Request) {
         slotStart: slot.startTime,
         slotEnd: slot.endTime,
         addons: [],
-        unwanted: profile.unwanted,
-        allergy: profile.allergy,
-        weight: profile.weight,
-        height: profile.height,
+        unwanted: profile.unwanted || "",
+        allergy: profile.allergy || "",
+        weight: profile.weight || "",
+        height: profile.height || "",
         subtotal: pricing.subtotal,
         discount: pricing.discount,
         discountCode: disc?.code ?? "",
@@ -285,11 +285,11 @@ export async function POST(req: Request) {
         optionId: null,
         packageAr: "طلبات من اختيارك (مخصص)",
         packageEn: "Custom Built Meal",
-        optionAr: `بروتين مخصص - ${customDetails.dailyMeals} وجبات يومياً`,
-        optionEn: `Custom Protein - ${customDetails.dailyMeals} meals daily`,
-        protein: selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr} (${qty})`).join('، '),
-        carbs: selectedCarbs.map(c => c.nameAr).join('، '),
-        mealsPerDay: dailyMealsCount,
+        optionAr: `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
+        optionEn: `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
+        protein: Array.isArray(selectedProtsWithQty) ? selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr ?? ''} (${qty})`).join('، ') : "",
+        carbs: Array.isArray(selectedCarbs) ? selectedCarbs.map(c => c?.nameAr ?? '').filter(Boolean).join('، ') : "",
+        mealsPerDay: Number(dailyMealsCount || 3),
         days,
         startDate,
         endDate,
@@ -297,7 +297,7 @@ export async function POST(req: Request) {
         regionAr: region.nameAr,
         regionEn: region.nameEn,
         house,
-        flat,
+        flat: flat || "",
         road,
         block,
         slotId: slot.id,
@@ -306,10 +306,10 @@ export async function POST(req: Request) {
         slotStart: slot.startTime,
         slotEnd: slot.endTime,
         addons: [],
-        unwanted: profile.unwanted,
-        allergy: profile.allergy,
-        weight: profile.weight,
-        height: profile.height,
+        unwanted: profile.unwanted || "",
+        allergy: profile.allergy || "",
+        weight: profile.weight || "",
+        height: profile.height || "",
         subtotal: pricing.subtotal,
         discount: pricing.discount,
         discountCode: disc?.code ?? "",
