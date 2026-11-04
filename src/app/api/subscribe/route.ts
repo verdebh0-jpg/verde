@@ -194,7 +194,7 @@ export async function POST(req: Request) {
     if (last && addDays(last.endDate, 1) > minStart) minStart = addDays(last.endDate, 1);
   }
   const reqStart = str(b.startDate);
-  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(reqStart) && reqStart >= minStart ? reqStart : minStart;
+  const startDate = /^\d{4}-\d{2}-\d{2}$/.text(reqStart) && reqStart >= minStart ? reqStart : minStart;
   const endDate = addDays(startDate, days - 1);
 
   let pay: any = { ok: true, status: "paid", reference: "PAY-" + Date.now().toString(36).toUpperCase(), last4: "" };
@@ -237,18 +237,55 @@ export async function POST(req: Request) {
         await tx.update(customers).set(profile).where(eq(customers.id, existing.id));
       }
 
-      // بناء كائن مشترك دقيق ومطابق لجميع أعمدة جدول subscriptions بدون أي نقص أو زيادة
-      const subValues = {
+      // مطابقة الأعمدة بدقة مطلقة مع جدول subscriptions لتجنب أي تباين في الأنواع أو أعداد الأعمدة
+      const subValues = subscriptionType === "packages" ? {
         customerId,
-        packageId: subscriptionType === "packages" ? pkg.id : null,
-        optionId: subscriptionType === "packages" ? opt.id : null,
-        packageAr: subscriptionType === "packages" ? pkg.nameAr : "طلبات من اختيارك (مخصص)",
-        packageEn: subscriptionType === "packages" ? pkg.nameEn : "Custom Built Meal",
-        optionAr: subscriptionType === "packages" ? opt.labelAr : `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
-        optionEn: subscriptionType === "packages" ? opt.labelEn : `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
-        protein: subscriptionType === "packages" ? pkg.protein : (Array.isArray(selectedProtsWithQty) ? selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr ?? ''} (${qty})`).join('، ') : ""),
-        carbs: subscriptionType === "packages" ? pkg.carbs : (Array.isArray(selectedCarbs) ? selectedCarbs.map(c => c?.nameAr ?? '').filter(Boolean).join('، ') : ""),
-        mealsPerDay: subscriptionType === "packages" ? opt.mealsPerDay : Number(dailyMealsCount || 3),
+        packageId: pkg.id,
+        optionId: opt.id,
+        packageAr: pkg.nameAr,
+        packageEn: pkg.nameEn,
+        optionAr: opt.labelAr,
+        optionEn: opt.labelEn,
+        protein: pkg.protein,
+        carbs: pkg.carbs,
+        mealsPerDay: opt.mealsPerDay,
+        days,
+        startDate,
+        endDate,
+        regionId: region.id,
+        regionAr: region.nameAr,
+        regionEn: region.nameEn,
+        house,
+        flat: flat || "",
+        road,
+        block,
+        slotId: slot.id,
+        slotGroupAr: slot.groupAr,
+        slotGroupEn: slot.groupEn,
+        slotStart: slot.startTime,
+        slotEnd: slot.endTime,
+        addons: [],
+        unwanted: profile.unwanted || "",
+        allergy: profile.allergy || "",
+        weight: profile.weight || "",
+        height: profile.height || "",
+        subtotal: pricing.subtotal,
+        discount: pricing.discount,
+        discountCode: disc?.code ?? "",
+        deliveryFee: pricing.deliveryFee,
+        total: pricing.total,
+        paymentMethod: method.key,
+      } : {
+        customerId,
+        packageId: 0, // تعيين رقم افتراضي لكي لا يرفض حقل الـ integer القادم من قاعدة البيانات
+        optionId: 0,
+        packageAr: "طلبات من اختيارك (مخصص)",
+        packageEn: "Custom Built Meal",
+        optionAr: `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
+        optionEn: `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
+        protein: 0, // حقل رقمي في الجدول، نضع 0 ونترك التفاصيل في الوصف أو الأسماء
+        carbs: 0,
+        mealsPerDay: Number(dailyMealsCount || 3),
         days,
         startDate,
         endDate,
