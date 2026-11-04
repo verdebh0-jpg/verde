@@ -43,7 +43,6 @@ export async function POST(req: Request) {
   let customDetails: any = null;
   let pricing: any = null;
 
-  // التحقق بناءً على نوع الاشتراك
   const [slot] = await db
     .select()
     .from(deliverySlots)
@@ -66,9 +65,8 @@ export async function POST(req: Request) {
   const disc = await findDiscount(str(b.discountCode));
   if (str(b.discountCode) && !disc) return bad("invalid_code");
   
-  let selectedProteins: any[] = [];
-  let selectedCarbs: any[] = [];
   let selectedProtsWithQty: any[] = [];
+  let selectedCarbs: any[] = [];
   let dailyMealsCount = 3;
 
   if (subscriptionType === "packages") {
@@ -96,7 +94,6 @@ export async function POST(req: Request) {
       discount: disc ? { type: disc.type, value: disc.value } : null,
     });
   } else {
-    // حساب أسعار "طلبات من اختيارك"
     customDetails = b.customDetails;
     if (
       !customDetails ||
@@ -186,7 +183,6 @@ export async function POST(req: Request) {
     if (dup) return bad("email_exists", 409);
   }
 
-  // start date: at least tomorrow, and after any existing subscription
   let minStart = addDays(today, 1);
   if (existing) {
     const [last] = await db
@@ -201,7 +197,6 @@ export async function POST(req: Request) {
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(reqStart) && reqStart >= minStart ? reqStart : minStart;
   const endDate = addDays(startDate, days - 1);
 
-  // ---- معالجة مرنة وبسيطة للدفع بدون تعقيد (كاش، بنفت، أو بطاقة) ----
   let pay: any = { ok: true, status: "paid", reference: "PAY-" + Date.now().toString(36).toUpperCase(), last4: "" };
   
   if (method.key === "cash") {
@@ -242,54 +237,18 @@ export async function POST(req: Request) {
         await tx.update(customers).set(profile).where(eq(customers.id, existing.id));
       }
 
-      const subValues = subscriptionType === "packages" ? {
+      // بناء كائن مشترك دقيق ومطابق لجميع أعمدة جدول subscriptions بدون أي نقص أو زيادة
+      const subValues = {
         customerId,
-        packageId: pkg.id,
-        optionId: opt.id,
-        packageAr: pkg.nameAr,
-        packageEn: pkg.nameEn,
-        optionAr: opt.labelAr,
-        optionEn: opt.labelEn,
-        protein: pkg.protein,
-        carbs: pkg.carbs,
-        mealsPerDay: opt.mealsPerDay,
-        days,
-        startDate,
-        endDate,
-        regionId: region.id,
-        regionAr: region.nameAr,
-        regionEn: region.nameEn,
-        house,
-        flat: flat || "",
-        road,
-        block,
-        slotId: slot.id,
-        slotGroupAr: slot.groupAr,
-        slotGroupEn: slot.groupEn,
-        slotStart: slot.startTime,
-        slotEnd: slot.endTime,
-        addons: [],
-        unwanted: profile.unwanted || "",
-        allergy: profile.allergy || "",
-        weight: profile.weight || "",
-        height: profile.height || "",
-        subtotal: pricing.subtotal,
-        discount: pricing.discount,
-        discountCode: disc?.code ?? "",
-        deliveryFee: pricing.deliveryFee,
-        total: pricing.total,
-        paymentMethod: method.key,
-      } : {
-        customerId,
-        packageId: null,
-        optionId: null,
-        packageAr: "طلبات من اختيارك (مخصص)",
-        packageEn: "Custom Built Meal",
-        optionAr: `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
-        optionEn: `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
-        protein: Array.isArray(selectedProtsWithQty) ? selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr ?? ''} (${qty})`).join('، ') : "",
-        carbs: Array.isArray(selectedCarbs) ? selectedCarbs.map(c => c?.nameAr ?? '').filter(Boolean).join('، ') : "",
-        mealsPerDay: Number(dailyMealsCount || 3),
+        packageId: subscriptionType === "packages" ? pkg.id : null,
+        optionId: subscriptionType === "packages" ? opt.id : null,
+        packageAr: subscriptionType === "packages" ? pkg.nameAr : "طلبات من اختيارك (مخصص)",
+        packageEn: subscriptionType === "packages" ? pkg.nameEn : "Custom Built Meal",
+        optionAr: subscriptionType === "packages" ? opt.labelAr : `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
+        optionEn: subscriptionType === "packages" ? opt.labelEn : `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
+        protein: subscriptionType === "packages" ? pkg.protein : (Array.isArray(selectedProtsWithQty) ? selectedProtsWithQty.map(({ pObj, qty }) => `${pObj?.nameAr ?? ''} (${qty})`).join('، ') : ""),
+        carbs: subscriptionType === "packages" ? pkg.carbs : (Array.isArray(selectedCarbs) ? selectedCarbs.map(c => c?.nameAr ?? '').filter(Boolean).join('، ') : ""),
+        mealsPerDay: subscriptionType === "packages" ? opt.mealsPerDay : Number(dailyMealsCount || 3),
         days,
         startDate,
         endDate,
