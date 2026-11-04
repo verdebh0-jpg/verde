@@ -68,6 +68,7 @@ export async function POST(req: Request) {
    let selectedProteins: any[] = [];
 let selectedCarbs: any[] = [];
 let selectedProtsWithQty: any[] = [];
+let dailyMealsCount = 3; // أضف هذا السطر هنا
   if (subscriptionType === "packages") {
     [opt] = await db
       .select()
