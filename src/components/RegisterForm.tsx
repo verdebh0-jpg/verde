@@ -477,33 +477,65 @@ const carbExtra = selectedCarbIds.length > 0
                 </div>
               </div>
 
-              {/* الخطوة 4: نوع البروتين المفضل */}
+              {/* الخطوة 4: نوع البروتين المفضل مع إمكانية تحديد عدد المرات */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
                   <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
-                  اختر نوع البروتين المفضل:
+                  اختر نوع البروتين المفضل وتحديد عدد مرات التكرار:
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {preferredProteinsList.map((item) => {
-                    const isSelected = selectedProteinIds.includes(item.id);
+                    // حساب كم مرة تم اختيار هذا الصنف حالياً
+                    const count = selectedProteinIds.filter((id) => id === item.id).length;
+                    
                     return (
-                      <button
+                      <div
                         key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedProteinIds((prev) =>
-                            prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-                          );
-                        }}
-                        className={`p-3 rounded-xl border text-right transition flex flex-col justify-between items-start gap-1 ${
-                          isSelected ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
+                        className={`p-3 rounded-xl border transition flex items-center justify-between gap-2 ${
+                          count > 0 ? "bg-verde/5 border-verde" : "border-slate-200"
                         }`}
                       >
-                        <span className="text-sm">{p(item.labelAr, item.labelEn)}</span>
-                        <span className="text-[10px] text-sage">
-                          {item.freePolicy === "always_free" ? "مجاني دائماً" : `مجاني لوجبة، ثم +${fmtMoney(Number(item.extraPrice))} د.ب`}
-                        </span>
-                      </button>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800">{p(item.labelAr, item.labelEn)}</span>
+                          <span className="text-[11px] text-sage">
+                            {item.freePolicy === "always_free" ? "مجاني دائماً" : `مجاني لوجبة، ثم +${fmtMoney(Number(item.extraPrice))} د.ب`}
+                          </span>
+                        </div>
+
+                        {/* أزرار التحكم بالكمية (- و +) */}
+                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProteinIds((prev) => {
+                                const index = prev.indexOf(item.id);
+                                if (index > -1) {
+                                  const copy = [...prev];
+                                  copy.splice(index, 1);
+                                  return copy;
+                                }
+                                return prev;
+                              });
+                            }}
+                            disabled={count === 0}
+                            className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 font-bold"
+                          >
+                            -
+                          </button>
+                          
+                          <span className="w-6 text-center text-sm font-bold text-verde">{count}</span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProteinIds((prev) => [...prev, item.id]);
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded bg-verde text-white hover:bg-verde/90 font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
                   {!preferredProteinsList.length && <p className="text-sm text-slate-400 col-span-full">لا توجد خيارات بروتين مضافة بعد من لوحة التحكم</p>}
