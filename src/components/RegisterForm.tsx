@@ -407,7 +407,7 @@ const carbExtra = selectedCarbIds.length > 0
 
         {/* 2. قسم طلبات من اختيارك (الـ 6 خطوات التفاعلية المنظمة) */}
         {subscriptionType === "custom" && (
-          <Section n={1} title="طلبات من اختيارك (تفصيل وجبتك الكاملة)">
+          <Section n={1} title={p("طلبات من اختيارك (تفصيل وجبتك الكاملة)", "Custom meals (Full meal customization)")}>
             <div className="space-y-6">
               
               {/* الخطوة 1: غرامات البروتين */}
@@ -451,7 +451,7 @@ const carbExtra = selectedCarbIds.length > 0
                         customDailyMeals === num ? "bg-verde text-white border-verde" : "border-slate-200 hover:border-verde"
                       }`}
                     >
-                      {num} {num === 1 ? "وجبة" : "وجبات"}
+                      {num} {p(num === 1 ? "وجبة" : "وجبات", num === 1 ? "meal" : "meals")}
                     </button>
                   ))}
                 </div>
@@ -473,7 +473,7 @@ const carbExtra = selectedCarbIds.length > 0
                         customDays === d ? "bg-verde text-white border-verde" : "border-slate-200 hover:border-verde"
                       }`}
                     >
-                      {d} يوماً
+                      {d} {p("يوماً", "days")}
                     </button>
                   ))}
                 </div>
@@ -873,8 +873,13 @@ const carbExtra = selectedCarbIds.length > 0
           {subscriptionType === "custom" && customPricing && (
             <div className="space-y-3">
               <div className="rounded-xl bg-verde/5 p-3 text-xs space-y-1 text-verde">
-                <p className="font-bold text-sm">وجبة مخصصة ({customProteinGrams})</p>
-                <p>عدد الوجبات: {customDailyMeals} يومياً · لمدة {customDays} يوماً</p>
+                <p className="font-bold text-sm">
+  {p(`وجبة مخصصة (${customProteinGrams})`, `Custom Meal (${customProteinGrams})`)}
+</p>
+                {p(
+  `عدد الوجبات: ${customDailyMeals} يومياً · لمدة ${customDays} يوماً`,
+  `${customDailyMeals} meals daily · for ${customDays} days`
+)}
               </div>
               <dl className="space-y-1.5 text-sm">
                 <Row k="مجموع الوجبات الأساسية" v={customPricing.mealsBaseTotal} />
