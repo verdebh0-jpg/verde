@@ -179,7 +179,7 @@ const carbExtra = selectedCarbIds.length > 0
       discountAmount,
       total,
     };
-  }, [subscriptionType, customProteinGrams, customDailyMeals, customMealsList, selectedProteinId, selectedCarbId, selectedPackagingId, customDays, customAddonIds, sideAddonsList, regionId, disc, catalog.regions]);
+  }, [subscriptionType, customProteinGrams, customDailyMeals, customMealsList, selectedProteinIds, selectedCarbIds, selectedPackagingId, customDays, customAddonIds, sideAddonsList, regionId, disc, catalog.regions]);
 
   // حساب الباقات الجاهزة
   const allOptions = useMemo(
