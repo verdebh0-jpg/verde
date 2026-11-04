@@ -146,7 +146,7 @@ let selectedProtsWithQty: any[] = [];
     const carbExtra = selectedCarbs.reduce((sum, c) => sum + Number(c.price || 0), 0);
     const packagingExtra = packagingOpt ? Number(packagingOpt.price || 0) : 0;
 
-    const dailyMealsCount = Number(customDetails.dailyMeals || 3);
+    dailyMealsCount = Number(customDetails.dailyMeals || 3);
     const singleMealBasePrice = baseMealRate + carbExtra + packagingExtra;
     const mealsBaseTotal = (singleMealBasePrice * dailyMealsCount * days) + (totalProteinsExtraPrice * days);
 
