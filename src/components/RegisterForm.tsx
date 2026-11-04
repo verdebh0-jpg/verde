@@ -413,9 +413,9 @@ const carbExtra = selectedCarbIds.length > 0
               {/* الخطوة 1: غرامات البروتين */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">1</span>
-                  اختر كمية غرامات البروتين للوجبة:
-                </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">1</span>
+  {p("اختر كمية غرامات البروتين للوجبة:", "Select protein grams per meal:")}
+</h3>
                 <div className="grid grid-cols-3 gap-3">
                   {(catalog.proteinPrices || [{ weightKey: "100g", price: 1.200 }, { weightKey: "150g", price: 1.500 }, { weightKey: "200g", price: 1.800 }]).map((item) => (
                     <button
@@ -438,9 +438,9 @@ const carbExtra = selectedCarbIds.length > 0
               {/* الخطوة 2: عدد الوجبات يومياً */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">2</span>
-                  اختر عدد الوجبات اليومية:
-                </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">2</span>
+  {p("اختر عدد الوجبات اليومية:", "Select daily meals count:")}
+</h3>
                 <div className="grid grid-cols-6 gap-2">
                   {[1, 2, 3, 4, 5, 6].map((num) => (
                     <button
@@ -460,9 +460,9 @@ const carbExtra = selectedCarbIds.length > 0
               {/* الخطوة 3: عدد أيام الاشتراك التنازلية (30, 28, 24, 20) */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">3</span>
-                  اختر مدة أيام الاشتراك:
-                </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">3</span>
+  {p("اختر مدة أيام الاشتراك:", "Select subscription duration:")}
+</h3>
                 <div className="grid grid-cols-4 gap-3">
                   {[30, 28, 24, 20].map((d) => (
                     <button
@@ -483,12 +483,15 @@ const carbExtra = selectedCarbIds.length > 0
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                   <h3 className="font-bold text-verde flex items-center gap-2">
-                    <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
-                    اختر نوع البروتين المفضل وتحديد التوزيع:
-                  </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
+  {p("اختر نوع البروتين المفضل وتحديد التوزيع:", "Select preferred protein and distribution:")}
+</h3>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${currentSelectedProteinsCount === totalRequiredMeals ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                    تم اختيار {currentSelectedProteinsCount} من أصل {totalRequiredMeals} وجبة
-                  </span>
+  {p(
+    `تم اختيار ${currentSelectedProteinsCount} من أصل ${totalRequiredMeals} وجبة`,
+    `Selected ${currentSelectedProteinsCount} of ${totalRequiredMeals} meals`
+  )}
+</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -505,8 +508,10 @@ const carbExtra = selectedCarbIds.length > 0
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-slate-800">{p(item.labelAr, item.labelEn)}</span>
                           <span className="text-[11px] text-sage">
-                            {item.freePolicy === "always_free" ? "مجاني دائماً" : `مجاني لوجبة، ثم +${fmtMoney(Number(item.extraPrice))} د.ب`}
-                          </span>
+  {item.freePolicy === "always_free" 
+    ? p("مجاني دائماً", "Always Free") 
+    : p(`مجاني لوجبة، ثم +${fmtMoney(Number(item.extraPrice))} د.ب`, `Free for 1 meal, then +${fmtMoney(Number(item.extraPrice))} BD`)}
+</span>
                         </div>
 
                         {/* أزرار التحكم بالكمية (- و +) */}
@@ -555,9 +560,9 @@ const carbExtra = selectedCarbIds.length > 0
               {/* الخطوة 5: نوع الكارب */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">5</span>
-                  اختر نوع الكاربوهيدرات المفضل:
-                </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">5</span>
+  {p("اختر نوع الكاربوهيدرات المفضل:", "Select preferred carbohydrates:")}
+</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {carbOptions.map((item) => (
                     <button
@@ -583,9 +588,9 @@ const carbExtra = selectedCarbIds.length > 0
               {/* الخطوة 6: التغليف والإضافات الجانبية */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-4">
                 <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">6</span>
-                  التغليف والإضافات الجانبية:
-                </h3>
+  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">6</span>
+  {p("التغليف والإضافات الجانبية:", "Packaging & Side Add-ons:")}
+</h3>
 
                 {/* خيارات التغليف */}
                 <div className="space-y-2">
