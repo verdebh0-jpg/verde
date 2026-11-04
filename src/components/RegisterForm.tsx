@@ -109,6 +109,8 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
   // استرجاع قائمة البروتينات المفضلة بمعاييرها الجديدة من الكتالوج
   const customMealsList = catalog.customMeals || [];
    const preferredProteinsList = catalog.preferredProteins || [];
+   const totalRequiredMeals = customDailyMeals * customDays;
+   const currentSelectedProteinsCount = selectedProteinIds.length;
   const carbOptions = useMemo(() => customMealsList.filter((m) => m.category === "carb"), [customMealsList]);
   const packagingOptions = useMemo(() => customMealsList.filter((m) => m.category === "packaging"), [customMealsList]);
   const sideAddonsList = useMemo(() => customMealsList.filter((m) => m.category === "side"), [customMealsList]);
@@ -117,8 +119,6 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
   const customPricing = useMemo(() => {
     if (subscriptionType !== "custom") return null;
     // إجمالي الوجبات المطلوبة بناءً على عدد الوجبات اليومية وأيام الاشتراك
-  const totalRequiredMeals = customDailyMeals * customDays;
-  const currentSelectedProteinsCount = selectedProteinIds.length;
     // تحديد سعر القاعدة بناءً على الوزن وعدد الوجبات في اليوم
     let baseMealRate = 1.500; // قيمة افتراضية احتياطية
 
