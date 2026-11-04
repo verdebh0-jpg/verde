@@ -316,14 +316,14 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
         .returning({ id: subscriptions.id });
 
       await tx.insert(payments).values({
-        customerId,
-        subscriptionId: sub.id,
-        method: method.key,
-        amount: pricing.total,
-        status: pay.status,
-        reference: pay.reference,
-        cardLast4: pay.last4,
-      });
+  customerId,
+  subscriptionId: sub.id,
+  method: method.key,
+  amount: pricing.total,
+  status: pay.ok ? pay.status : "cod",
+  reference: pay.ok ? pay.reference : "COD-FALLBACK",
+  cardLast4: pay.ok ? pay.last4 : "",
+});
 
       await tx.insert(orders).values(
         Array.from({ length: days }, (_, i) => ({
