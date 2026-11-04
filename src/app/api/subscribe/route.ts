@@ -11,7 +11,7 @@ import {
   packages,
   paymentMethods,
   payments,
-    preferred_proteins,
+    preferredproteins,
   regions,
   subscriptions,
 } from "@/db/schema";
@@ -104,8 +104,8 @@ let selectedCarbs: any[] = [];
       return bad("invalid_input");
     }
 
-    // جلب جدول preferred_proteins بدلاً من customMealOptions للبروتينات
-    const preferredProts = await db.select().from(preferred_proteins).where(eq(preferred_proteins.active, true));
+    // جلب جدول preferredproteins بدلاً من customMealOptions للبروتينات
+    const preferredProts = await db.select().from(preferredproteins).where(eq(preferredproteins.active, true));
     const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
 
     const rawProteinIds: number[] = customDetails.proteinIds.map(Number).filter(Number.isFinite);
