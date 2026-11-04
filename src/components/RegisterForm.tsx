@@ -172,7 +172,7 @@ const carbExtra = selectedCarbIds.length > 0
   : 0;
     const packagingExtra = selectedPackagingId ? Number(customMealsList.find((m) => m.id === selectedPackagingId)?.price || 0) : 0;
 
-    const singleMealPrice = baseMealRate + proteinExtra + carbExtra + packagingExtra;
+    const singleMealPrice = baseMealRate + proteinExtraTotal + carbExtra + packagingExtra;
     const dailyTotal = singleMealPrice * customDailyMeals;
     const mealsBaseTotal = dailyTotal * customDays;
 
