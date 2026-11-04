@@ -116,7 +116,9 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
  // حساب أسعار "طلبات من اختيارك" بناءً على الجدول التفصيلي للوزن وعدد الوجبات يومياً
   const customPricing = useMemo(() => {
     if (subscriptionType !== "custom") return null;
-
+    // إجمالي الوجبات المطلوبة بناءً على عدد الوجبات اليومية وأيام الاشتراك
+  const totalRequiredMeals = customDailyMeals * customDays;
+  const currentSelectedProteinsCount = selectedProteinIds.length;
     // تحديد سعر القاعدة بناءً على الوزن وعدد الوجبات في اليوم
     let baseMealRate = 1.500; // قيمة افتراضية احتياطية
 
@@ -503,37 +505,41 @@ const carbExtra = selectedCarbIds.length > 0
                         </div>
 
                         {/* أزرار التحكم بالكمية (- و +) */}
-                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedProteinIds((prev) => {
-                                const index = prev.indexOf(item.id);
-                                if (index > -1) {
-                                  const copy = [...prev];
-                                  copy.splice(index, 1);
-                                  return copy;
-                                }
-                                return prev;
-                              });
-                            }}
-                            disabled={count === 0}
-                            className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 font-bold"
-                          >
-                            -
-                          </button>
-                          
-                          <span className="w-6 text-center text-sm font-bold text-verde">{count}</span>
+              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProteinIds((prev) => {
+                      const index = prev.indexOf(item.id);
+                      if (index > -1) {
+                        const copy = [...prev];
+                        copy.splice(index, 1);
+                        return copy;
+                      }
+                      return prev;
+                    });
+                  }}
+                  disabled={count === 0}
+                  className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 font-bold"
+                >
+                  -
+                </button>
+                
+                <span className="w-6 text-center text-sm font-bold text-verde">{count}</span>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedProteinIds((prev) => [...prev, item.id]);
-                            }}
-                            className="w-7 h-7 flex items-center justify-center rounded bg-verde text-white hover:bg-verde/90 font-bold"
-                          >
-                            +
-                          </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentSelectedProteinsCount < totalRequiredMeals) {
+                      setSelectedProteinIds((prev) => [...prev, item.id]);
+                    }
+                  }}
+                  disabled={currentSelectedProteinsCount >= totalRequiredMeals}
+                  className="w-7 h-7 flex items-center justify-center rounded bg-verde text-white hover:bg-verde/90 font-bold disabled:opacity-30"
+                >
+                  +
+                </button>
+              </div>
                         </div>
                       </div>
                     );
