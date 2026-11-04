@@ -69,8 +69,8 @@ export default function RegisterForm({
   const [customProteinGrams, setCustomProteinGrams] = useState<string>("150g");
   const [customDailyMeals, setCustomDailyMeals] = useState<number>(3);
   const [customDays, setCustomDays] = useState<number>(30); // 30, 28, 24, 20
-  const [selectedProteinId, setSelectedProteinId] = useState<number | null>(null);
-  const [selectedCarbId, setSelectedCarbId] = useState<number | null>(null);
+  const [selectedProteinIds, setSelectedProteinIds] = useState<number[]>([]);
+const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
   const [selectedPackagingId, setSelectedPackagingId] = useState<number | null>(null);
   const [customAddonIds, setCustomAddonIds] = useState<number[]>([]);
 
@@ -142,8 +142,12 @@ export default function RegisterForm({
       else if (customDailyMeals >= 6) baseMealRate = 1.550;
     }
 
-    const proteinExtra = selectedProteinId ? Number(customMealsList.find((m) => m.id === selectedProteinId)?.price || 0) : 0;
-    const carbExtra = selectedCarbId ? Number(customMealsList.find((m) => m.id === selectedCarbId)?.price || 0) : 0;
+    const proteinExtra = selectedProteinIds.length > 0 
+  ? Number(customMealsList.find((m) => m.id === selectedProteinIds[0])?.price || 0) 
+  : 0;
+const carbExtra = selectedCarbIds.length > 0 
+  ? Number(customMealsList.find((m) => m.id === selectedCarbIds[0])?.price || 0) 
+  : 0;
     const packagingExtra = selectedPackagingId ? Number(customMealsList.find((m) => m.id === selectedPackagingId)?.price || 0) : 0;
 
     const singleMealPrice = baseMealRate + proteinExtra + carbExtra + packagingExtra;
@@ -222,8 +226,8 @@ export default function RegisterForm({
     e.preventDefault();
     setErr("");
     if (subscriptionType === "packages" && !opt) return setErr(t("err_choose_plan"));
-    if (subscriptionType === "custom" && (!selectedProteinId || !selectedCarbId))
-      return setErr("يرجى اختيار نوع البروتين ونوع الكارب لتفصيل وجبتك");
+    if (subscriptionType === "custom" && (selectedProteinIds.length === 0 || selectedCarbIds.length === 0))
+  return setErr("يرجى اختيار نوع البروتين ونوع الكارب لتفصيل وجبتك");
     if (!slotId) return setErr(t("err_choose_slot"));
     if (!regionId) return setErr(t("err_choose_region"));
     if (!f.house || !f.road || !f.block) return setErr(t("err_address_required"));
@@ -241,8 +245,8 @@ export default function RegisterForm({
       customDetails: subscriptionType === "custom" ? {
         proteinGrams: customProteinGrams,
         dailyMeals: customDailyMeals,
-        proteinId: selectedProteinId,
-        carbId: selectedCarbId,
+        proteinIds: selectedProteinIds,
+        carbIds: selectedCarbIds,
         packagingId: selectedPackagingId,
         sideAddonIds: customAddonIds,
       } : null,
@@ -455,18 +459,22 @@ export default function RegisterForm({
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
                   <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
-                  اختر نوع البروتين الرئيسي:
+                  اختر نوع البروتين المفضل:
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {proteinOptions.map((item) => (
                     <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedProteinId(item.id)}
-                      className={`p-3 rounded-xl border text-right transition flex justify-between items-center ${
-                        selectedProteinId === item.id ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
-                      }`}
-                    >
+  key={item.id}
+  type="button"
+  onClick={() => {
+    setSelectedProteinIds((prev) =>
+      prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+    );
+  }}
+  className={`p-3 rounded-xl border text-right transition flex justify-between items-center ${
+    selectedProteinIds.includes(item.id) ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
+  }`}
+>
                       <span>{p(item.nameAr, item.nameEn)}</span>
                       {Number(item.price) > 0 && <span className="text-xs text-sage">+{fmtMoney(Number(item.price))}</span>}
                     </button>
@@ -479,18 +487,22 @@ export default function RegisterForm({
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
                   <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">5</span>
-                  اختر نوع الكاربوهيدرات:
+                  اختر نوع الكاربوهيدرات المفضل:
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {carbOptions.map((item) => (
                     <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedCarbId(item.id)}
-                      className={`p-3 rounded-xl border text-right transition flex justify-between items-center ${
-                        selectedCarbId === item.id ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
-                      }`}
-                    >
+  key={item.id}
+  type="button"
+  onClick={() => {
+    setSelectedCarbIds((prev) =>
+      prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+    );
+  }}
+  className={`p-3 rounded-xl border text-right transition flex justify-between items-center ${
+    selectedCarbIds.includes(item.id) ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
+  }`}
+>
                       <span>{p(item.nameAr, item.nameEn)}</span>
                       {Number(item.price) > 0 && <span className="text-xs text-sage">+{fmtMoney(Number(item.price))}</span>}
                     </button>

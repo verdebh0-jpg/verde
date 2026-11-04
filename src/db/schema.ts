@@ -251,3 +251,12 @@ export const proteinPrices = pgTable("protein_prices", {
   sortOrder: integer("sort_order").default(0).notNull(),
   active: boolean("active").default(true).notNull(),
 });
+// ---------- Unwanted Food Options Catalog ----------
+export const unwantedOptions = pgTable("unwanted_options", {
+  id: serial("id").primaryKey(),
+  nameKey: text("name_key").notNull().unique(), // مثلاً: chicken, meat, shrimp...
+  labelAr: text("label_ar").notNull(),
+  labelEn: text("label_en").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+});
