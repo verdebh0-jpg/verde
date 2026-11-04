@@ -260,3 +260,14 @@ export const unwantedOptions = pgTable("unwanted_options", {
   sortOrder: integer("sort_order").default(0).notNull(),
   active: boolean("active").default(true).notNull(),
 });
+// ---------- Preferred Proteins Options ----------
+export const preferredProteins = pgTable("preferred_proteins", {
+  id: serial("id").primaryKey(),
+  nameKey: text("name_key").notNull().unique(), // chicken, meat, salmon...
+  labelAr: text("label_ar").notNull(),
+  labelEn: text("label_en").notNull(),
+  freePolicy: text("free_policy").notNull().default("one_time_free"), // always_free للدجاج أو one_time_free للبقية
+  extraPrice: money("extra_price").notNull().default(0), // رسوم الإضافة المتكررة
+  sortOrder: integer("sort_order").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+});

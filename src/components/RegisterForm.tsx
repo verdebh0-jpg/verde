@@ -106,8 +106,8 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
   const setField = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
 
   // خيارات جدول custom_meal_options مقسمة حسب الفئات
-  const customMealsList = catalog.customMeals || [];
-  const proteinOptions = useMemo(() => customMealsList.filter((m) => m.category === "protein"), [customMealsList]);
+  // استرجاع قائمة البروتينات المفضلة بمعاييرها الجديدة من الكتالوج
+  const preferredProteinsList = catalog.preferredProteins || [];
   const carbOptions = useMemo(() => customMealsList.filter((m) => m.category === "carb"), [customMealsList]);
   const packagingOptions = useMemo(() => customMealsList.filter((m) => m.category === "packaging"), [customMealsList]);
   const sideAddonsList = useMemo(() => customMealsList.filter((m) => m.category === "side"), [customMealsList]);
@@ -142,9 +142,30 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
       else if (customDailyMeals >= 6) baseMealRate = 1.550;
     }
 
-    const proteinExtra = selectedProteinIds.length > 0 
-  ? Number(customMealsList.find((m) => m.id === selectedProteinIds[0])?.price || 0) 
-  : 0;
+    // حساب الرسوم الخاصة بالبروتينات المفضلة بناءً على السياسة وعدد مرات التكرار
+  let proteinExtraTotal = 0;
+  if (selectedProteinIds.length > 0) {
+    // عد تكرار كل بروتين تم اختياره
+    const proteinCounts: Record<number, number> = {};
+    for (const id of selectedProteinIds) {
+      proteinCounts[id] = (proteinCounts[id] || 0) + 1;
+    }
+
+    for (const [idStr, count] of Object.entries(proteinCounts)) {
+      const pId = Number(idStr);
+      const proteinItem = preferredProteinsList.find((p) => p.id === pId);
+      if (proteinItem) {
+        if (proteinItem.freePolicy === "always_free") {
+          // الدجاج أو الصنف المخصص دائماً مجاني مهما تكرر
+          // extra = 0
+        } else {
+          // باقي الأصناف: مجانية لأول مرة فقط، وما زاد يحسب برسوم التكرار (extraPrice)
+          const extraCount = Math.max(0, count - 1);
+          proteinExtraTotal += extraCount * Number(proteinItem.extraPrice || 0);
+        }
+      }
+    }
+  } 
 const carbExtra = selectedCarbIds.length > 0 
   ? Number(customMealsList.find((m) => m.id === selectedCarbIds[0])?.price || 0) 
   : 0;
@@ -455,31 +476,36 @@ const carbExtra = selectedCarbIds.length > 0
                 </div>
               </div>
 
-              {/* الخطوة 4: نوع البروتين */}
+              {/* الخطوة 4: نوع البروتين المفضل */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
                 <h3 className="font-bold text-verde flex items-center gap-2">
                   <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
                   اختر نوع البروتين المفضل:
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {proteinOptions.map((item) => (
-                    <button
-  key={item.id}
-  type="button"
-  onClick={() => {
-    setSelectedProteinIds((prev) =>
-      prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-    );
-  }}
-  className={`p-3 rounded-xl border text-right transition flex justify-between items-center ${
-    selectedProteinIds.includes(item.id) ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
-  }`}
->
-                      <span>{p(item.nameAr, item.nameEn)}</span>
-                      {Number(item.price) > 0 && <span className="text-xs text-sage">+{fmtMoney(Number(item.price))}</span>}
-                    </button>
-                  ))}
-                  {!proteinOptions.length && <p className="text-sm text-slate-400 col-span-full">لا توجد خيارات بروتين مضافة بعد من لوحة التحكم</p>}
+                  {preferredProteinsList.map((item) => {
+                    const isSelected = selectedProteinIds.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedProteinIds((prev) =>
+                            prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                          );
+                        }}
+                        className={`p-3 rounded-xl border text-right transition flex flex-col justify-between items-start gap-1 ${
+                          isSelected ? "bg-verde/10 border-verde text-verde font-bold" : "border-slate-200 hover:border-verde"
+                        }`}
+                      >
+                        <span className="text-sm">{p(item.labelAr, item.labelEn)}</span>
+                        <span className="text-[10px] text-sage">
+                          {item.freePolicy === "always_free" ? "مجاني دائماً" : `مجاني لوجبة، ثم +${fmtMoney(Number(item.extraPrice))} د.ب`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {!preferredProteinsList.length && <p className="text-sm text-slate-400 col-span-full">لا توجد خيارات بروتين مضافة بعد من لوحة التحكم</p>}
                 </div>
               </div>
 

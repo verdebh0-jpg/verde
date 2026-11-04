@@ -4,7 +4,8 @@ import {
   addons,
   carouselImages,
   customMealOptions,
-  proteinPrices, // 👈 1. استيراد جدول أسعار الأوزان الجديد
+  proteinPrices,
+  preferredProteins, // 👈 1. استيراد جدول البروتينات المفضلة الجديد
   deliverySlots,
   packageOptions,
   packages,
@@ -24,7 +25,7 @@ export async function getSettings(): Promise<Record<string, string>> {
 }
 
 export async function getCatalog() {
-  const [pk, opts, ad, sl, rg, pm, st, cm, pp] = await Promise.all([
+  const [pk, opts, ad, sl, rg, pm, st, cm, pp, prefProt] = await Promise.all([
     db.select().from(packages).where(eq(packages.active, true)).orderBy(asc(packages.sortOrder), asc(packages.id)),
     db.select().from(packageOptions).where(eq(packageOptions.active, true)).orderBy(asc(packageOptions.sortOrder), asc(packageOptions.id)),
     db.select().from(addons).where(eq(addons.active, true)).orderBy(asc(addons.sortOrder), asc(addons.id)),
@@ -33,7 +34,8 @@ export async function getCatalog() {
     db.select().from(paymentMethods).where(eq(paymentMethods.active, true)).orderBy(asc(paymentMethods.sortOrder), asc(paymentMethods.id)),
     getSettings(),
     db.select().from(customMealOptions).where(eq(customMealOptions.active, true)).orderBy(asc(customMealOptions.sortOrder), asc(customMealOptions.id)),
-    db.select().from(proteinPrices).orderBy(asc(proteinPrices.sortOrder), asc(proteinPrices.id)), // 👈 2. جلب جدول أسعار الأوزان
+    db.select().from(proteinPrices).orderBy(asc(proteinPrices.sortOrder), asc(proteinPrices.id)),
+    db.select().from(preferredProteins).where(eq(preferredProteins.active, true)).orderBy(asc(preferredProteins.sortOrder), asc(preferredProteins.id)), // 👈 2. جلب البروتينات المفضلة النشطة من القاعدة
   ]);
 
   return {
@@ -44,7 +46,8 @@ export async function getCatalog() {
     methods: pm,
     settings: st,
     customMeals: cm,
-    proteinPrices: pp, // 👈 3. إضافتها داخل الكتالوج لتروّض TypeScript تماماً
+    proteinPrices: pp,
+    preferredProteins: prefProt, // 👈 3. إضافتها داخل الـ Catalog لتصبح متاحة في الواجهة
   };
 }
 
