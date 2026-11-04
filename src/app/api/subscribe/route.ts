@@ -64,7 +64,8 @@ export async function POST(req: Request) {
 
   const disc = await findDiscount(str(b.discountCode));
   if (str(b.discountCode) && !disc) return bad("invalid_code");
-
+   let selectedProteins: any[] = [];
+let selectedCarbs: any[] = [];
   if (subscriptionType === "packages") {
     [opt] = await db
       .select()
@@ -106,8 +107,8 @@ if (
 const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
 
 // تصفية جميع البروتينات والكاربوهيدرات المختارة
-const selectedProteins = customOpts.filter((o) => customDetails.proteinIds.map(Number).includes(o.id));
-const selectedCarbs = customOpts.filter((o) => customDetails.carbIds.map(Number).includes(o.id));
+selectedProteins = customOpts.filter((o) => customDetails.proteinIds.map(Number).includes(o.id));
+selectedCarbs = customOpts.filter((o) => customDetails.carbIds.map(Number).includes(o.id));
 if (selectedProteins.length === 0 || selectedCarbs.length === 0) return bad("invalid_input");
     const packagingOpt = customOpts.find((o) => o.id === Number(customDetails.packagingId));
     const sideAddons = customOpts.filter((o) => Array.isArray(customDetails.sideAddonIds) && customDetails.sideAddonIds.includes(o.id));
