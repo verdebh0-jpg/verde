@@ -67,6 +67,7 @@ export async function POST(req: Request) {
   if (str(b.discountCode) && !disc) return bad("invalid_code");
    let selectedProteins: any[] = [];
 let selectedCarbs: any[] = [];
+let selectedProtsWithQty: any[] = [];
   if (subscriptionType === "packages") {
     [opt] = await db
       .select()
@@ -118,7 +119,7 @@ let selectedCarbs: any[] = [];
       proteinCounts[id] = (proteinCounts[id] || 0) + 1;
     });
 
-    const selectedProtsWithQty = Object.entries(proteinCounts).map(([idStr, qty]) => {
+    selectedProtsWithQty = Object.entries(proteinCounts).map(([idStr, qty]) => {
       const pObj = preferredProts.find((p) => p.id === Number(idStr));
       return { pObj, qty };
     }).filter((x) => x.pObj !== undefined);
