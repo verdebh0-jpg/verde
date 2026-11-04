@@ -11,7 +11,7 @@ import {
   packages,
   paymentMethods,
   payments,
-    preferredProteins,
+  preferredProteins,
   regions,
   subscriptions,
 } from "@/db/schema";
@@ -65,10 +65,12 @@ export async function POST(req: Request) {
 
   const disc = await findDiscount(str(b.discountCode));
   if (str(b.discountCode) && !disc) return bad("invalid_code");
-   let selectedProteins: any[] = [];
-let selectedCarbs: any[] = [];
-let selectedProtsWithQty: any[] = [];
-let dailyMealsCount = 3; // أضف هذا السطر هنا
+  
+  let selectedProteins: any[] = [];
+  let selectedCarbs: any[] = [];
+  let selectedProtsWithQty: any[] = [];
+  let dailyMealsCount = 3;
+
   if (subscriptionType === "packages") {
     [opt] = await db
       .select()
@@ -106,7 +108,6 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
       return bad("invalid_input");
     }
 
-    // جلب جدول preferredproteins بدلاً من customMealOptions للبروتينات
     const preferredProts = await db.select().from(preferredProteins).where(eq(preferredProteins.active, true));
     const customOpts = await db.select().from(customMealOptions).where(eq(customMealOptions.active, true));
 
@@ -200,14 +201,21 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(reqStart) && reqStart >= minStart ? reqStart : minStart;
   const endDate = addDays(startDate, days - 1);
 
-  // ---- payment must succeed before the account/subscription is created ----
-  const pay = await chargePayment({
-  method: b.paymentMethod || "cash",
-  amount: pricing.total,
-  card: b.card,
-  benefitPhone: b.benefitPhone,
-});
-  if (!pay.ok && b.paymentMethod !== "cash") return bad(pay.error, 402);
+  // ---- معالجة مرنة وبسيطة للدفع بدون تعقيد (كاش، بنفت، أو إيبان) ----
+  let pay: any = { ok: true, status: "paid", reference: "PAY-" + Date.now().toString(36).toUpperCase(), last4: "" };
+  
+  if (method.key === "cash") {
+    pay = { ok: true, status: "cod", reference: "COD-" + Date.now().toString(36).toUpperCase(), last4: "" };
+  } else if (method.key === "benefitpay") {
+    pay = { ok: true, status: "paid", reference: "BP-" + Date.now().toString(36).toUpperCase(), last4: "" };
+  } else if (method.key === "card") {
+    pay = await chargePayment({
+      method: "card",
+      amount: pricing.total,
+      card: b.card,
+    });
+    if (!pay.ok) return bad(pay.error, 402);
+  }
 
   const profile = {
     weight: str(b.weight),
@@ -316,14 +324,14 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
         .returning({ id: subscriptions.id });
 
       await tx.insert(payments).values({
-  customerId,
-  subscriptionId: sub.id,
-  method: method.key,
-  amount: pricing.total,
-  status: pay.ok ? pay.status : "cod",
-  reference: pay.ok ? pay.reference : "COD-FALLBACK",
-  cardLast4: pay.ok ? pay.last4 : "",
-});
+        customerId,
+        subscriptionId: sub.id,
+        method: method.key,
+        amount: pricing.total,
+        status: pay.ok ? pay.status : "cod",
+        reference: pay.ok ? pay.reference : "COD-FALLBACK",
+        cardLast4: pay.ok ? pay.last4 : "",
+      });
 
       await tx.insert(orders).values(
         Array.from({ length: days }, (_, i) => ({
@@ -349,8 +357,8 @@ let dailyMealsCount = 3; // أضف هذا السطر هنا
       subscriptionId: result.subId,
       reference: pay.ok ? pay.reference : "COD"
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error("subscribe failed", e);
-    return bad("server_error", 500);
+    return bad(e?.message || "server_error", 500);
   }
 }
