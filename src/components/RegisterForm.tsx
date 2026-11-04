@@ -107,7 +107,8 @@ const [selectedCarbIds, setSelectedCarbIds] = useState<number[]>([]);
 
   // خيارات جدول custom_meal_options مقسمة حسب الفئات
   // استرجاع قائمة البروتينات المفضلة بمعاييرها الجديدة من الكتالوج
-  const preferredProteinsList = catalog.preferredProteins || [];
+  const customMealsList = catalog.customMeals || [];
+   const preferredProteinsList = catalog.preferredProteins || [];
   const carbOptions = useMemo(() => customMealsList.filter((m) => m.category === "carb"), [customMealsList]);
   const packagingOptions = useMemo(() => customMealsList.filter((m) => m.category === "packaging"), [customMealsList]);
   const sideAddonsList = useMemo(() => customMealsList.filter((m) => m.category === "side"), [customMealsList]);
