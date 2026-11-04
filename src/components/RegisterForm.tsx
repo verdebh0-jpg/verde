@@ -479,15 +479,20 @@ const carbExtra = selectedCarbIds.length > 0
                 </div>
               </div>
 
-              {/* الخطوة 4: نوع البروتين المفضل مع إمكانية تحديد عدد المرات */}
+              {/* الخطوة 4: نوع البروتين المفضل وتحديد عدد مرات التكرار */}
               <div className="rounded-2xl border border-slate-200 p-4 bg-white space-y-3">
-                <h3 className="font-bold text-verde flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
-                  اختر نوع البروتين المفضل وتحديد عدد مرات التكرار:
-                </h3>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <h3 className="font-bold text-verde flex items-center gap-2">
+                    <span className="h-6 w-6 rounded-full bg-verde text-white text-xs flex items-center justify-center">4</span>
+                    اختر نوع البروتين المفضل وتحديد التوزيع:
+                  </h3>
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${currentSelectedProteinsCount === totalRequiredMeals ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                    تم اختيار {currentSelectedProteinsCount} من أصل {totalRequiredMeals} وجبة
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {preferredProteinsList.map((item) => {
-                    // حساب كم مرة تم اختيار هذا الصنف حالياً
                     const count = selectedProteinIds.filter((id) => id === item.id).length;
                     
                     return (
@@ -505,41 +510,40 @@ const carbExtra = selectedCarbIds.length > 0
                         </div>
 
                         {/* أزرار التحكم بالكمية (- و +) */}
-              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedProteinIds((prev) => {
-                      const index = prev.indexOf(item.id);
-                      if (index > -1) {
-                        const copy = [...prev];
-                        copy.splice(index, 1);
-                        return copy;
-                      }
-                      return prev;
-                    });
-                  }}
-                  disabled={count === 0}
-                  className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 font-bold"
-                >
-                  -
-                </button>
-                
-                <span className="w-6 text-center text-sm font-bold text-verde">{count}</span>
+                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProteinIds((prev) => {
+                                const index = prev.indexOf(item.id);
+                                if (index > -1) {
+                                  const copy = [...prev];
+                                  copy.splice(index, 1);
+                                  return copy;
+                                }
+                                return prev;
+                              });
+                            }}
+                            disabled={count === 0}
+                            className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 font-bold"
+                          >
+                            -
+                          </button>
+                          
+                          <span className="w-6 text-center text-sm font-bold text-verde">{count}</span>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (currentSelectedProteinsCount < totalRequiredMeals) {
-                      setSelectedProteinIds((prev) => [...prev, item.id]);
-                    }
-                  }}
-                  disabled={currentSelectedProteinsCount >= totalRequiredMeals}
-                  className="w-7 h-7 flex items-center justify-center rounded bg-verde text-white hover:bg-verde/90 font-bold disabled:opacity-30"
-                >
-                  +
-                </button>
-              </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (currentSelectedProteinsCount < totalRequiredMeals) {
+                                setSelectedProteinIds((prev) => [...prev, item.id]);
+                              }
+                            }}
+                            disabled={currentSelectedProteinsCount >= totalRequiredMeals}
+                            className="w-7 h-7 flex items-center justify-center rounded bg-verde text-white hover:bg-verde/90 font-bold disabled:opacity-30"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
                     );
