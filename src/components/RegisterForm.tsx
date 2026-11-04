@@ -316,7 +316,7 @@ const carbExtra = selectedCarbIds.length > 0
               subscriptionType === "packages" ? "bg-verde text-white shadow-sm" : "text-slate-600 hover:text-verde"
             }`}
           >
-            🥗 الباقات الجاهزة
+            🥗 {p("الباقات الجاهزة", "Ready Packages")}
           </button>
           <button
             type="button"
@@ -325,7 +325,7 @@ const carbExtra = selectedCarbIds.length > 0
               subscriptionType === "custom" ? "bg-verde text-white shadow-sm" : "text-slate-600 hover:text-verde"
             }`}
           >
-            🍽️ طلبات من اختيارك (تفصيل الوجبة)
+            🍽️ {p("طلبات من اختيارك (تفصيل الوجبة)", "Custom Meals (Meal Customization)")}
           </button>
         </div>
 
@@ -882,7 +882,7 @@ const carbExtra = selectedCarbIds.length > 0
 )}
               </div>
               <dl className="space-y-1.5 text-sm">
-                <Row k="مجموع الوجبات الأساسية" v={customPricing.mealsBaseTotal} />
+                <Row k={p("مجموع الوجبات الأساسية", "Base meals total")} v={customPricing.mealsBaseTotal} />
                 {customPricing.sidesTotal > 0 && <Row k="الإضافات الجانبية" v={customPricing.sidesTotal} />}
                 {customPricing.discountAmount > 0 && <Row k={`${t("discount")} (${disc?.code})`} v={-customPricing.discountAmount} />}
                 {customPricing.regionFee > 0 && <Row k={t("deliveryFee")} v={customPricing.regionFee} />}
