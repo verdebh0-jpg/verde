@@ -194,7 +194,7 @@ export async function POST(req: Request) {
     if (last && addDays(last.endDate, 1) > minStart) minStart = addDays(last.endDate, 1);
   }
   const reqStart = str(b.startDate);
-  const startDate = /^\d{4}-\d{2}-\d{2}$/.text(reqStart) && reqStart >= minStart ? reqStart : minStart;
+  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(reqStart) && reqStart >= minStart ? reqStart : minStart;
   const endDate = addDays(startDate, days - 1);
 
   let pay: any = { ok: true, status: "paid", reference: "PAY-" + Date.now().toString(36).toUpperCase(), last4: "" };
@@ -237,7 +237,6 @@ export async function POST(req: Request) {
         await tx.update(customers).set(profile).where(eq(customers.id, existing.id));
       }
 
-      // مطابقة الأعمدة بدقة مطلقة مع جدول subscriptions لتجنب أي تباين في الأنواع أو أعداد الأعمدة
       const subValues = subscriptionType === "packages" ? {
         customerId,
         packageId: pkg.id,
@@ -277,13 +276,13 @@ export async function POST(req: Request) {
         paymentMethod: method.key,
       } : {
         customerId,
-        packageId: 0, // تعيين رقم افتراضي لكي لا يرفض حقل الـ integer القادم من قاعدة البيانات
+        packageId: 0,
         optionId: 0,
         packageAr: "طلبات من اختيارك (مخصص)",
         packageEn: "Custom Built Meal",
         optionAr: `بروتين مخصص - ${customDetails?.dailyMeals ?? 3} وجبات يومياً`,
         optionEn: `Custom Protein - ${customDetails?.dailyMeals ?? 3} meals daily`,
-        protein: 0, // حقل رقمي في الجدول، نضع 0 ونترك التفاصيل في الوصف أو الأسماء
+        protein: 0,
         carbs: 0,
         mealsPerDay: Number(dailyMealsCount || 3),
         days,
